@@ -29,6 +29,6 @@ module.exports = {
     // 忽略缩进设置（使用webstorm的默认格式化代码）
     'indent': 0,
     'space-before-function-paren': 0,
-    'no-trailing-spaces': 0
+    'no-tabs': 0
   }
 }

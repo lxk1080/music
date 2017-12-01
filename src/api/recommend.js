@@ -4,7 +4,7 @@
 import jsonp from 'common/js/jsonp'
 import {commonParams, options} from './config'
 
-export function getRecommend () {
+export function getRecommends () {
   const url = 'https://c.y.qq.com/musichall/fcgi-bin/fcg_yqqhomepagerecommend.fcg'
   const data = Object.assign({}, commonParams, {
     platform: 'h5',
@@ -14,4 +14,3 @@ export function getRecommend () {
 
   return jsonp(url, data, options)
 }
-

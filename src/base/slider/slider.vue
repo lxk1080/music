@@ -1,16 +1,19 @@
 <template>
-  <div class="slider">
-    <div class="slider-group">
+  <div class="slider" ref="slide">
+    <div class="slider-group" ref="slideGroup">
       <slot>
       </slot>
     </div>
     <div class="dots">
-      
+
     </div>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
+  import BScroll from 'better-scroll'
+  import {addClass} from 'common/js/dom'
+
   export default {
     props: {
       loop: {
@@ -23,7 +26,46 @@
       },
       interval: {
         type: Number,
-        default: 5000
+        default: 1000
+      }
+    },
+    mounted() {
+      setTimeout(() => {
+        this._setSlideWidth()
+        this._initSlider()
+      }, 20)
+    },
+    methods: {
+      _setSlideWidth() {
+        this.children = this.$refs.slideGroup.children
+        let width = 0
+        let sliderWidth = this.$refs.slide.clientWidth
+        for (var i = 0; i < this.children.length; i++) {
+          let child = this.children[i]
+
+          addClass(child, 'slider-item')
+          child.style.width = sliderWidth + 'px'
+
+          width += sliderWidth
+        }
+
+        if (this.loop) {
+          width += 2 * sliderWidth
+        }
+
+        this.$refs.slideGroup.style.width = width + 'px'
+      },
+      _initSlider() {
+        this.slider = new BScroll(this.$refs.slide, {
+          scrollX: true,
+          scrollY: false,
+          momentum: false,
+          snap: {
+            loop: this.loop, // 循环切换
+            threshold: 0.3,  // 拖动百分比触发切换
+            speed: 400 // 切换的速度
+          }
+        })
       }
     }
   }

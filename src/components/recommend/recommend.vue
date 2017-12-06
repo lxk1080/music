@@ -1,49 +1,78 @@
 <template>
   <div class="recommend">
-    <div class="recommend-content">
-      <div  v-if="recommends.length" class="slider-wrapper">
-        <v-slider>
-          <div v-for="(item,index) in recommends" :key="index">
-            <a :href="item.linkUrl"></a>
-            <img :src="item.picUrl" alt="pic">
-          </div>
-        </v-slider>
+    <v-scroll ref="scroll" class="recommend-content" :data="descList">
+      <div>
+        <div v-if="banners.length" class="slider-wrapper">
+          <v-slider>
+            <div v-for="(item,index) in banners" :key="index">
+              <a :href="item.linkUrl">
+                <img @load="loadImage" :src="item.picUrl" alt="pic">
+              </a>
+            </div>
+          </v-slider>
+        </div>
+        <div class="recommend-list">
+          <h1 class="list-title">热门歌单推荐</h1>
+          <ul>
+            <li class="item" v-for="item in descList">
+              <div class="icon">
+                <img :src="item.imgurl" alt="img" width="60" height="60">
+              </div>
+              <div class="text">
+                <div class="name" v-html="item.creator.name"></div>
+                <div class="desc">{{item.dissname}}</div>
+              </div>
+            </li>
+          </ul>
+        </div>
       </div>
-      <div class="recommend-list">
-        <h1 class="list-title">热门歌单推荐</h1>
-        <ul>
-          <div class="qwer"></div>
-        </ul>
-      </div>
-    </div>
+    </v-scroll>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
+  import Scroll from 'base/scroll/scroll'
   import Slider from 'base/slider/slider'
-  import {getRecommends} from 'api/recommend'
+  import {getBanners, getDiscList} from 'api/recommend'
   import {ERR_OK} from 'api/config'
 
   export default {
     data() {
       return {
-        recommends: []
+        banners: [],
+        descList: []
       }
     },
     created() {
-      this._getRecommends()
+      this._getBanners()
+      this._getDiscList()
     },
     methods: {
-      _getRecommends() {
-        getRecommends().then((res) => {
+      _getBanners() {
+        getBanners().then((res) => {
           if (res.code === ERR_OK) {
-            this.recommends = res.data.slider
+            this.banners = res.data.slider
           }
         })
+      },
+      _getDiscList() {
+        getDiscList().then((res) => {
+          if (res.code === ERR_OK) {
+            this.descList = res.data.list
+          }
+        })
+      },
+      // 当图片撑开时，刷新 better-scroll
+      loadImage() {
+        if (!this.checked) {
+          this.$refs.scroll.refresh()
+          this.checked = true
+        }
       }
     },
     components: {
-      'v-slider': Slider
+      'v-slider': Slider,
+      'v-scroll': Scroll
     }
   }
 </script>

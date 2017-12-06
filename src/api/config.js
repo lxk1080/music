@@ -1,6 +1,7 @@
 /**
  * Created by lxk on 2017/11/28.
  */
+// 参数根据分析接口获得
 export const commonParams = {
   g_tk: 5381,
   format: 'json',

@@ -5,7 +5,7 @@
       </slot>
     </div>
     <div class="dots">
-
+      
     </div>
   </div>
 </template>
@@ -26,7 +26,7 @@
       },
       interval: {
         type: Number,
-        default: 1000
+        default: 4000
       }
     },
     mounted() {
@@ -64,7 +64,8 @@
             loop: this.loop, // 循环切换
             threshold: 0.3,  // 拖动百分比触发切换
             speed: 400 // 切换的速度
-          }
+          },
+          click: true
         })
       }
     }

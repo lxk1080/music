@@ -21,3 +21,12 @@ export function hasClass (el, className) {
   var reg = new RegExp('(^|\\s)' + className + '(\\s|$)')
   return reg.test(el.className)
 }
+
+export function getData (el, name, val) {
+  name = 'data-' + name
+  if (val) {
+    el.setAttribute(name, val)
+  } else {
+    return el.getAttribute(name)
+  }
+}

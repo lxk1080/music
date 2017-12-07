@@ -1,6 +1,7 @@
 <template>
   <div class="recommend">
     <v-scroll ref="scroll" class="recommend-content" :data="descList">
+      <!--滚动区域-->
       <div>
         <div v-if="banners.length" class="slider-wrapper">
           <v-slider>
@@ -16,21 +17,26 @@
           <ul>
             <li class="item" v-for="item in descList">
               <div class="icon">
-                <img :src="item.imgurl" alt="img" width="60" height="60">
+                <img v-lazy="item.imgurl" alt="img" width="60" height="60">
               </div>
               <div class="text">
                 <div class="name" v-html="item.creator.name"></div>
-                <div class="desc">{{item.dissname}}</div>
+                <div class="desc" v-html="item.dissname"></div>
               </div>
             </li>
           </ul>
         </div>
+      </div>
+      <!--loading-->
+      <div class="loading-container" v-show="!descList.length">
+        <v-loading></v-loading>
       </div>
     </v-scroll>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
+  import Loading from 'base/loading/loading'
   import Scroll from 'base/scroll/scroll'
   import Slider from 'base/slider/slider'
   import {getBanners, getDiscList} from 'api/recommend'
@@ -72,7 +78,8 @@
     },
     components: {
       'v-slider': Slider,
-      'v-scroll': Scroll
+      'v-scroll': Scroll,
+      'v-loading': Loading
     }
   }
 </script>

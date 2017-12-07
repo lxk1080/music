@@ -28,7 +28,8 @@ export function getDiscList () {
     sortId: 5,
     needNewCode: 0,
     categoryId: 10000000,
-    rnd: Math.random()
+    rnd: Math.random(),
+    format: 'json'
   })
 
   // 前端通过axios发起ajax请求到node，再由node发起http请求到接口（node可以改变请求头的信息）

@@ -1,5 +1,6 @@
 <template>
-  <v-scroll class="listview" ref="listview">
+  <v-scroll class="listview" ref="listview" :listenScroll="true" :probeType="3" @scroll="scroll">
+    <!--滚动列表（scroll内的第一个元素）-->
     <ul>
       <li class="list-group" v-for="group in data" ref="listGroup">
         <h2 class="list-group-title">{{group.title}}</h2>
@@ -11,20 +12,40 @@
         </ul>
       </li>
     </ul>
+    <!--右侧快速入口-->
     <div class="list-shortcut">
       <ul>
-        <li class="item" v-for="(item,index) in shortcutList" :data-index="index" @touchstart="start" @touchmove.stop.prevent="move">{{item}}</li>
+        <li class="item"
+            v-for="(item,index) in shortcutList"
+            :data-index="index"
+            :class="{current: currentIndex===index}"
+            @touchstart="start"
+            @touchmove.stop.prevent="move"
+        >
+          {{item}}
+        </li>
       </ul>
+    </div>
+    <!--固定标题-->
+    <div class="list-fixed" v-show="fixedTitle" ref="fixed">
+      <h1 class="fixed-title">{{fixedTitle}}</h1>
+    </div>
+    <!--loading-->
+    <div class="loading-container" v-show="!data.length">
+      <v-loading></v-loading>
     </div>
   </v-scroll>
 </template>
 
 <script type="text/ecmascript-6">
   import Scroll from 'base/scroll/scroll'
+  import Loading from 'base/loading/loading'
   // import {getData} from 'common/js/dom' // 获取自定义属性的方法，不需要
 
   // 每个锚点的高度(例如 A，B，C，... ，根据样式计算而来)
   const ANCHOR_HEIGHT = 18
+  // 滚动固定标题的高度
+  const TITLE_HEIGHT = 30
 
   export default {
     props: {
@@ -33,19 +54,36 @@
         default: null
       }
     },
+    data() {
+      return {
+        scrollY: 0,
+        currentIndex: 0,
+        posY: 0,
+        diff: 0
+      }
+    },
     created() {
       this.touch = {}
+      this.listHeights = []
     },
     computed: {
       shortcutList() {
         return this.data.map((item) => {
           return item.title.substr(0, 1)
         })
+      },
+      fixedTitle() {
+        // 向下拉动时，隐藏fixedTitle
+        if (this.posY > 0) {
+          return ''
+        }
+        // 这里的细节（一定要先判断数据来没来）
+        return this.data[this.currentIndex] ? this.data[this.currentIndex].title : ''
       }
     },
     methods: {
       start(e) {
-        var index = e.target.dataset.index
+        let index = e.target.dataset.index
         let position = e.touches[0] // 获取第一个手指的位置
         this.touch.y1 = position.pageY // 获取这个位置的高度（距离屏幕上边缘的高度）
         this.touch.index = index // 记录一开始点击时的索引
@@ -54,16 +92,59 @@
       move(e) {
         let position = e.touches[0]
         this.touch.y2 = position.pageY
-        let delta = (this.touch.y2 - this.touch.y1) / ANCHOR_HEIGHT | 0  // 获得滑过的锚点个数
+        let delta = (this.touch.y2 - this.touch.y1) / ANCHOR_HEIGHT | 0  // 获得滑过的锚点个数（'或0'向下取整）
         let index = parseInt(this.touch.index) + delta
         this._scrollToElement(index)
       },
+      scroll(pos) {
+        this.posY = pos.y
+        this.scrollY = Math.abs(this.posY | 0)
+      },
       _scrollToElement(index) {
-        this.$refs.listview.scrollToElement(this.$refs.listGroup[index], 0)
+        this.currentIndex = parseInt(index)
+        this.$refs.listview.scrollToElement(this.$refs.listGroup[index], 1000)
+      },
+      _calcHeight() {
+        this.listHeights = []
+        let height = 0
+        this.listHeights.push(height)
+        let listGroup = this.$refs.listGroup
+        for (let i = 0, len = listGroup.length; i < len; i++) {
+          let item = listGroup[i]
+          height += item.clientHeight
+          this.listHeights.push(height)
+        }
+      }
+    },
+    watch: {
+      data() {
+       setTimeout(() => {
+         this._calcHeight()
+       }, 20)
+      },
+      scrollY(newY) {
+        for (let i = 0, len = this.listHeights.length; i < len; i++) {
+          let height1 = this.listHeights[i]
+          let height2 = this.listHeights[i + 1]
+          if (!height2 || (newY >= height1 && newY < height2)) {
+            this.currentIndex = i
+            this.diff = height2 + this.posY
+            break
+          }
+        }
+      },
+      diff(newVal) {
+        let fixedTop = (newVal > 0 && newVal < TITLE_HEIGHT) ? newVal - TITLE_HEIGHT : 0
+        if (this.fixedTop === fixedTop) {
+          return
+        }
+        this.fixedTop = fixedTop
+        this.$refs.fixed.style.transform = `translate3d(0, ${fixedTop}px, 0)`
       }
     },
     components: {
-      'v-scroll': Scroll
+      'v-scroll': Scroll,
+      'v-loading': Loading
     }
   }
 </script>
@@ -80,6 +161,7 @@
     .list-group
       padding-bottom: 30px
       .list-group-title
+        // margin-top -1px // 消除空隙
         height: 30px
         line-height: 30px
         padding-left: 20px
@@ -123,6 +205,7 @@
       left: 0
       width: 100%
       .fixed-title
+        // margin-top -1px // 消除空隙
         height: 30px
         line-height: 30px
         padding-left: 20px

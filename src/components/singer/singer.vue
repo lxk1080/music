@@ -1,11 +1,6 @@
 <template>
   <div class="singer">
     <v-listview :data="singers"></v-listview>
-
-    <!--loading-->
-    <div class="loading-container" v-show="!singers.length">
-      <v-loading></v-loading>
-    </div>
   </div>
 </template>
 
@@ -14,7 +9,6 @@
   import {ERR_OK} from 'api/config'
   import Singer from 'common/js/singer'
   import Listview from 'base/listview/listview'
-  import Loading from 'base/loading/loading'
 
   const HOT_NAME = '热门'
   const HOT_SINGER_LEN = 10
@@ -80,8 +74,7 @@
       }
     },
     components: {
-      'v-listview': Listview,
-      'v-loading': Loading
+      'v-listview': Listview
     }
   }
 </script>

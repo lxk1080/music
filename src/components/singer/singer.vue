@@ -1,6 +1,7 @@
 <template>
   <div class="singer">
-    <v-listview :data="singers"></v-listview>
+    <v-listview :data="singers" @entryDetail="entryDetail"></v-listview>
+    <router-view></router-view>
   </div>
 </template>
 
@@ -9,6 +10,7 @@
   import {ERR_OK} from 'api/config'
   import Singer from 'common/js/singer'
   import Listview from 'base/listview/listview'
+  import { mapMutations } from 'vuex'
 
   const HOT_NAME = '热门'
   const HOT_SINGER_LEN = 10
@@ -23,6 +25,17 @@
       this._getSingerList()
     },
     methods: {
+      entryDetail(singer) {
+        // 调用 router.push(...)等同于<router-link :to="...">
+        this.$router.push({
+          path: `/singer/${singer.mid}`, // 到指定的路由
+          query: {}  // 可传递参数
+        })
+        this.setSinger(singer)
+      },
+      ...mapMutations({
+        setSinger: 'SET_SINGER'  // 映射 this.setSinger(param) 为 this.$store.commit('SET_SINGER', param)，如果不改名，可以用数组方式映射
+      }),
       _getSingerList() {
         getSingerList().then((res) => {
           if (res.code === ERR_OK) {
@@ -85,9 +98,4 @@
     top: 88px
     bottom: 0
     width: 100%
-    .loading-container
-      position: absolute
-      width: 100%
-      top: 30%
-      transform: translateY(-50%)
 </style>

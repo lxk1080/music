@@ -40,7 +40,7 @@
         this.slider = new BScroll(this.$refs.wrapper, {
           probeType: this.probeType,
           click: this.click,
-          bounce: 900
+          bounceTime: 500
         })
 
         if (this.listenScroll) {

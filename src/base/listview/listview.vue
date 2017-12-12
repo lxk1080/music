@@ -5,7 +5,7 @@
       <li class="list-group" v-for="group in data" ref="listGroup">
         <h2 class="list-group-title">{{group.title}}</h2>
         <ul>
-          <li class="list-group-item" v-for="item in group.items">
+          <li class="list-group-item" v-for="item in group.items" @click="entryDetail(item)">
             <img class="avatar" v-lazy="item.avatar" alt="img">
             <div class="name">{{item.name}}</div>
           </li>
@@ -56,15 +56,15 @@
     },
     data() {
       return {
-        scrollY: 0,
-        currentIndex: 0,
-        posY: 0,
-        diff: 0
+        scrollY: 0, // 滚动时Y轴的值，注意向上滚动时Y为负值
+        currentIndex: 0,  // 滚动监听用
+        posY: 0,  // 为scrollY的绝对值
+        diff: 0  // 控制滚动时顶动动画的
       }
     },
     created() {
-      this.touch = {}
-      this.listHeights = []
+      this.touch = {} // 记录触摸时手指所在位置距离屏幕上边缘的高度
+      this.listHeights = []  // 记录滚动列表每个元素的高度
     },
     computed: {
       shortcutList() {
@@ -82,6 +82,9 @@
       }
     },
     methods: {
+      entryDetail(singer) {
+        this.$emit('entryDetail', singer)
+      },
       start(e) {
         let index = e.target.dataset.index
         let position = e.touches[0] // 获取第一个手指的位置

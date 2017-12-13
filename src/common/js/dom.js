@@ -30,3 +30,13 @@ export function getData (el, name, val) {
     return el.getAttribute(name)
   }
 }
+
+// 获取元素距离屏幕可视区的高度
+export function getTop (obj) {
+  var top = 0
+  while (obj) {
+    top += obj.offsetTop
+    obj = obj.offsetParent
+  }
+  return top
+}

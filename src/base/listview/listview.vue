@@ -56,9 +56,9 @@
     },
     data() {
       return {
-        scrollY: 0, // 滚动时Y轴的值，注意向上滚动时Y为负值
+        scrollY: 0, // 为posY的绝对值
         currentIndex: 0,  // 滚动监听用
-        posY: 0,  // 为scrollY的绝对值
+        posY: 0,  // 滚动时Y轴的值，注意向上滚动时Y为负值
         diff: 0  // 控制滚动时顶动动画的
       }
     },

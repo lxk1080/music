@@ -7,14 +7,20 @@
     <!--banner-->
     <h1 class="title" v-html="title"></h1>
     <div class="bg-image" :style="BgImageStyle" ref="bgImage">
+      <div class="play-wrapper">
+        <div class="play" v-show="songs.length > 0" ref="play">
+          <span class="icon-play"></span>
+          <div class="text">随机播放全部</div>
+        </div>
+      </div>
       <div class="filter" ref="filter"></div>
     </div>
-    <!--适应层-->
+    <!--辅助层-->
     <div class="bg-layer" ref="layer"></div>
     <!--歌曲列表-->
     <v-scroll class="list" ref="list" :data="songs" :probeType="probeType" :listenScroll="listenScroll" @scroll="scroll">
       <div class="song-list-wrapper">
-        <song-list :songs="songs"></song-list>
+        <song-list :songs="songs" @playSong="playSong" ></song-list>
       </div>
       <!--loading-->
       <div class="loading-container" v-show="!songs.length">
@@ -28,8 +34,12 @@
   import Scroll from 'base/scroll/scroll'
   import SongList from 'base/song-list/song-list'
   import Loading from 'base/loading/loading'
+  import { prefixStyle } from 'common/js/dom'
+  import { mapActions } from 'vuex'
 
   const RESERVED_HEIGHT = 40
+  const TRANSFORM = prefixStyle('transform')
+  const BACKDROP_FILTER = prefixStyle('backdrop-filter')
 
   export default {
     props: {
@@ -71,34 +81,48 @@
         this.scrollY = pos.y
       },
       back() {
-        this.$router.go(-1)
-      }
+        this.$router.back()
+      },
+      playSong(song, index) {
+        this.playSongActions({
+          list: this.songs,
+          index: index
+        })
+      },
+      ...mapActions([
+        'playSongActions'
+      ])
     },
     watch: {
       scrollY(newY) {
         let percent = Math.abs(newY / this.imageHeight)
-        if (newY < 0) { // 向上滚动时
+        // 向上滚动时
+        if (newY < 0) {
           let translateY = Math.max(this.minTranslateY, newY)
-          this.$refs.layer.style['transform'] = `translate3d(0, ${translateY}px, 0)`
-          this.$refs.layer.style['webkitTransform'] = `translate3d(0, ${translateY}px, 0)`
+          // 让辅助层偏移
+          this.$refs.layer.style[TRANSFORM] = `translate3d(0, ${translateY}px, 0)`
+          // 改变图片的层级以及高度，改变随机播放按钮的显隐
           let zIndex = 0
-          if (newY < this.minTranslateY) {
+          if (newY > this.minTranslateY) {
+            this.$refs.bgImage.style['paddingTop'] = this.imageHeight + 'px'
+            this.$refs.bgImage.style['height'] = 0
+            this.$refs.play.style.display = 'block'
+          } else {
             zIndex = 10
             this.$refs.bgImage.style['paddingTop'] = 0
             this.$refs.bgImage.style['height'] = RESERVED_HEIGHT + 'px'
-          } else {
-            this.$refs.bgImage.style['paddingTop'] = this.imageHeight + 'px'
-            this.$refs.bgImage.style['height'] = 0
+            this.$refs.play.style.display = 'none'
           }
           this.$refs.bgImage.style['zIndex'] = zIndex
-          let blur = Math.min(50 * percent, 50)
-          this.$refs.filter.style['backdrop-filter'] = `blur(${blur}px)`
-          this.$refs.filter.style['webkitBackdrop-filter'] = `blur(${blur}px)`
+          // 模糊效果
+          let blur = Math.min(20 * percent, 20)
+          this.$refs.filter.style[BACKDROP_FILTER] = `blur(${blur}px)`
         }
-        if (newY > 0) { // 向下滚动时
+        // 向下滚动时
+        if (newY > 0) {
+          // 使图片扩大并改变层级
           let scale = 1 + percent
-          this.$refs.bgImage.style['transform'] = `scale(${scale})`
-          this.$refs.bgImage.style['webkitTransform'] = `scale(${scale})`
+          this.$refs.bgImage.style[TRANSFORM] = `scale(${scale})`
           this.$refs.bgImage.style['zIndex'] = 10
         }
       }
@@ -186,6 +210,7 @@
       position: relative
       height: 100%
       background: $color-background
+      // background-image -webkit-gradient(linear, left top, left 10px, from(rgba(36,36,36,1)), to(36,36,36,0))
     .list
       position: absolute
       top: 0

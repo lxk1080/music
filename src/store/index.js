@@ -20,5 +20,5 @@ export default new Vuex.Store({
   getters,
 
   strict: debug, // 在严格模式下，无论何时发生了状态变更且不是由 mutation 函数引起的，将会抛出错误
-  plugins: debug ? [createLogger()] : []  // 打印出从一个状态改变的日志
+  plugins: debug ? [createLogger()] : []  // 打印出某一个状态改变的日志
 })

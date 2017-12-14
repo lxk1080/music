@@ -1,7 +1,7 @@
 <template>
   <div class="song-list">
     <ul>
-      <li v-for="song in songs" class="item">
+      <li v-for="(song,index) in songs" @click="playSong(song, index)" class="item">
         <div class="content">
           <div class="name">{{song.name}}</div>
           <div class="desc">{{song | DescFilter}}</div>
@@ -17,6 +17,11 @@
       songs: {
         type: Array,
         default: []
+      }
+    },
+    methods: {
+      playSong(song, index) {
+        this.$emit('playSong', song, index)
       }
     },
     filters: {

@@ -1,75 +1,160 @@
 <template>
-  <div class="player" v-show="playList.length">
+  <div class="player" v-show="playList.length && currentSong">
     <!--全屏-->
-    <div class="normal-player" v-show="fullScreen">
-      <div class="background">
-        <img width="100%" height="100%">
-      </div>
-      <div class="top">
-        <div class="back">
-          <i class="icon-back"></i>
+    <transition name="normal"
+                @enter="enter"
+                @after-enter="afterEnter"
+                @leave="leave"
+                @after-leave="afterLeave"
+    >
+      <div class="normal-player" v-show="fullScreen">
+        <div class="background">
+          <img width="100%" height="100%" :src="currentSong.image">
         </div>
-        <h1 class="title"></h1>
-        <h2 class="subtitle"></h2>
-      </div>
-      <div class="middle">
-        <div class="middle-l">
-          <div class="cd-wrapper">
-            <div class="cd">
-              <img class="image">
+        <div class="top">
+          <div class="back" @click="setMini">
+            <i class="icon-back"></i>
+          </div>
+          <h1 class="title" v-html="currentSong.name"></h1>
+          <h2 class="subtitle" v-html="currentSong.singer"></h2>
+        </div>
+        <div class="middle">
+          <div class="middle-l">
+            <div class="cd-wrapper" ref="cdWrapper">
+              <div class="cd">
+                <img class="image" :src="currentSong.image">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bottom">
+          <div class="operators">
+            <div class="icon i-left">
+              <i class="icon-sequence"></i>
+            </div>
+            <div class="icon i-left">
+              <i class="icon-prev"></i>
+            </div>
+            <div class="icon i-center">
+              <i class="icon-play"></i>
+            </div>
+            <div class="icon i-right">
+              <i class="icon-next"></i>
+            </div>
+            <div class="icon i-right">
+              <i class="icon icon-not-favorite"></i>
             </div>
           </div>
         </div>
       </div>
-      <div class="bottom">
-        <div class="operators">
-          <div class="icon i-left">
-            <i class="icon-sequence"></i>
-          </div>
-          <div class="icon i-left">
-            <i class="icon-prev"></i>
-          </div>
-          <div class="icon i-center">
-            <i class="icon-play"></i>
-          </div>
-          <div class="icon i-right">
-            <i class="icon-next"></i>
-          </div>
-          <div class="icon i-right">
-            <i class="icon icon-not-favorite"></i>
+    </transition>
+    <!--mini屏-->
+    <transition name="mini">
+      <div class="mini-player" v-show="!fullScreen" @click="open">
+        <div class="icon">
+          <div class="imgWrapper">
+            <img width="40" height="40" :src="currentSong.image">
           </div>
         </div>
+        <div class="text">
+          <h2 class="name"></h2>
+          <p class="desc"></p>
+        </div>
+        <div class="control">
+          <i class="icon-mini"></i>
+        </div>
+        <div class="control">
+          <i class="icon-playlist"></i>
+        </div>
       </div>
-    </div>
-    <!--mini屏-->
-    <div class="mini-player" v-show="!fullScreen">
-      <div class="icon">
-        <img width="40" height="40">
-      </div>
-      <div class="text">
-        <h2 class="name"></h2>
-        <p class="desc"></p>
-      </div>
-      <div class="control">
-        <i class="icon-mini"></i>
-      </div>
-      <div class="control">
-        <i class="icon-playlist"></i>
-      </div>
-    </div>
+    </transition>
   </div>
 </template>
 
 <script type="text/ecmascript-6">
-  import { mapGetters } from 'vuex'
+  import { mapGetters, mapMutations } from 'vuex'
+  import animations from 'create-keyframe-animation'
+  import { prefixStyle } from 'common/js/dom'
+
+  const TRANSFORM = prefixStyle('transform')
 
   export default {
     computed: {
       ...mapGetters([
-        'playing',
         'fullScreen',
-        'playList'
+        'playList',
+        'currentSong'
       ])
+    },
+    methods: {
+      ...mapMutations({
+        setFullScreen: 'SET_FULL_SCREEN'
+      }),
+      setMini() {
+        this.setFullScreen(false)
+      },
+      open() {
+        this.setFullScreen(true)
+      },
+      enter(el, done) {
+        const {x, y, scale} = this._getPosAndScale()
+        // 定义一个动画
+        let animation = {
+          0: {
+            transform: `translate3d(${-x}px, ${y}px, 0) scale(${scale})`
+          },
+          60: {
+            transform: `translate3d(0, 0, 0) scale(1.1)`
+          },
+          100: {
+            transform: `translate3d(0, 0, 0) scale(1)`
+          }
+        }
+        // 注册动画
+        animations.registerAnimation({
+          name: 'move',
+          animation: animation,
+          presets: {
+            duration: 400,
+            easing: 'linear'
+          }
+        })
+        // 指定执行动画的dom（这个时候事实上是在dom上挂载了一个css动画）
+        animations.runAnimation(this.$refs.cdWrapper, 'move', done)
+      },
+      afterEnter() {
+        // 注销动画并且清除dom上的动画属性
+        animations.unregisterAnimation('move')
+        this.$refs.cdWrapper.style['animation'] = 'none'
+      },
+      leave(el, done) {
+        this.$refs.cdWrapper.style['transition'] = 'all 0.4s'
+        const {x, y, scale} = this._getPosAndScale()
+        this.$refs.cdWrapper.style[TRANSFORM] = `translate3d(${-x}px, ${y}px, 0) scale(${scale})`
+
+        this.$refs.cdWrapper.addEventListener('transitionend', done)
+      },
+      afterLeave() {
+        this.$refs.cdWrapper.style['transtion'] = 'none'
+        this.$refs.cdWrapper.style[TRANSFORM] = 'none'
+      },
+      /**
+       * 得到大图与小图圆心的x轴y轴的距离和缩放比例
+       * @return {{x: number, y: number, scale: number}}
+       * @private
+       */
+      _getPosAndScale() {
+        let targetWidth = window.innerWidth * 0.8 // 大图的宽
+        let top = 80 // 大图距离屏幕的上边距
+        let miniWidth = 40 // 小图的宽
+        let scale = miniWidth / targetWidth // 缩放比例
+        let left = 20 + miniWidth / 2 // 小图圆心距离屏幕左边距
+        let bottom = 10 + miniWidth / 2 //  小图圆心距离屏幕下边距
+        let x = window.innerWidth / 2 - left // 大图与小图的x轴距离
+        let y = window.innerHeight - top - targetWidth / 2 - bottom // 大图与小图的y轴距离
+
+        return { x, y, scale }
+      }
     }
   }
 </script>
@@ -252,7 +337,7 @@
       &.normal-enter-active, &.normal-leave-active
         transition: all 0.4s
         .top, .bottom
-          transition: all 0.4s cubic-bezier(0.86, 0.18, 0.82, 1.32)
+          transition: all 0.4s cubic-bezier(.66, -0.37, .37, 1.35)
       &.normal-enter, &.normal-leave-to
         opacity: 0
         .top

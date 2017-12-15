@@ -39,7 +39,8 @@
 
   const RESERVED_HEIGHT = 40
   const TRANSFORM = prefixStyle('transform')
-  const BACKDROP_FILTER = prefixStyle('backdrop-filter')
+  const BACKDROP_FILTER = prefixStyle('backdropFilter')
+  const BOX_SHADOW = prefixStyle('boxShadow')
 
   export default {
     props: {
@@ -107,11 +108,15 @@
             this.$refs.bgImage.style['paddingTop'] = this.imageHeight + 'px'
             this.$refs.bgImage.style['height'] = 0
             this.$refs.play.style.display = 'block'
+            // 消除阴影
+            this.$refs.bgImage.style[BOX_SHADOW] = 'none'
           } else {
             zIndex = 10
             this.$refs.bgImage.style['paddingTop'] = 0
             this.$refs.bgImage.style['height'] = RESERVED_HEIGHT + 'px'
             this.$refs.play.style.display = 'none'
+            // 渐隐效果
+            this.$refs.bgImage.style[BOX_SHADOW] = '0 0 15px 15px #242424'
           }
           this.$refs.bgImage.style['zIndex'] = zIndex
           // 模糊效果

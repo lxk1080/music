@@ -47,7 +47,10 @@
         this._percentChange()
       },
       progressClick(e) {
-        this._offset(e.offsetX)
+        // 这里可能会误点进度球，那么通过e.offsetX获取位置就是错误的
+        // this._offset(e.offsetX)
+        let offset = e.pageX - this.$refs.progressBar.offsetLeft
+        this._offset(offset)
         this._percentChange()
       },
       _percentChange() {

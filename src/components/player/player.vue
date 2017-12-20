@@ -39,7 +39,7 @@
           <!--播放相关控制-->
           <div class="operators">
             <div class="icon i-left">
-              <i class="icon-sequence"></i>
+              <i :class="iconMode" @click="modeChange"></i>
             </div>
             <div class="icon i-left" :class="isDisable">
               <i class="icon-prev" @click="prevSong"></i>
@@ -70,7 +70,9 @@
           <p class="desc" v-html="currentSong.singer"></p>
         </div>
         <div class="control">
-          <i @click.stop="togglePlaying" :class="playIconMini"></i>
+          <progress-circle :radius="32" :percent="getPercent">
+            <i class="icon-mini" :class="playIconMini" @click.stop="togglePlaying"></i>
+          </progress-circle>
         </div>
         <div class="control">
           <i class="icon-playlist"></i>
@@ -85,7 +87,7 @@
     <audio :src="currentSong.url" ref="audio"
            @canplay="songCanplay"
            @error="songError"
-           @ended="nextSong"
+           @ended="songEnd"
            @timeupdate="doSomething"
     ></audio>
   </div>
@@ -96,6 +98,9 @@
   import animations from 'create-keyframe-animation'
   import { prefixStyle } from 'common/js/dom'
   import ProgressBar from 'base/progress-bar/progress-bar'
+  import ProgressCircle from 'base/progress-circle/progress-circle'
+  import { playMode } from 'common/js/config'
+  import { shuffle } from 'common/js/Util'
 
   const TRANSFORM = prefixStyle('transform')
 
@@ -123,19 +128,32 @@
       getPercent() {
         return this.currentTime / this.totalTime
       },
+      iconMode() {
+        if (this.mode === playMode.sequence) {
+          return 'icon-sequence'
+        }
+        if (this.mode === playMode.random) {
+          return 'icon-random'
+        }
+        return 'icon-loop'
+      },
       ...mapGetters([
         'fullScreen',
         'playList',
         'currentSong',
         'playing',
-        'currentIndex'
+        'currentIndex',
+        'mode',
+        'sequenceList'
       ])
     },
     methods: {
       ...mapMutations({
         setFullScreen: 'SET_FULL_SCREEN',
         setPlaying: 'SET_PLAYING',
-        setCurrentIndex: 'SET_CURRENT_INDEX'
+        setCurrentIndex: 'SET_CURRENT_INDEX',
+        setMode: 'SET_MODE',
+        setPlayList: 'SET_PLAY_LIST'
       }),
       setMini() {
         this.setFullScreen(false)
@@ -218,6 +236,14 @@
         this.songReady = true
         this.totalTime = 0
       },
+      songEnd() {
+        if (this.mode === playMode.loop) {
+          this.$refs.audio.currentTime = 0
+          this.$refs.audio.play()
+        } else {
+          this.nextSong()
+        }
+      },
       doSomething(e) {
         this.currentTime = e.target.currentTime
       },
@@ -226,6 +252,25 @@
         if (!this.playing) {
           this.setPlaying(true)
         }
+      },
+      modeChange() {
+        let mode = (this.mode + 1) % 3
+        this.setMode(mode)
+        let list = null
+        if (mode === playMode.random) {
+          list = shuffle(this.sequenceList)
+        } else {
+          list = this.sequenceList
+        }
+        // 获取当前歌曲在新列表里的索引
+        let index = this._getNewIndex(list, this.currentSong)
+        this.setPlayList(list)
+        this.setCurrentIndex(index)
+      },
+      _getNewIndex(list, song) {
+        return list.findIndex((item) => {
+          return item.id === song.id
+        })
       },
       /**
        * 得到大图与小图圆心的x轴y轴的距离和缩放比例
@@ -257,7 +302,11 @@
       }
     },
     watch: {
-      currentSong() {
+      currentSong(newSong, oldSong) {
+        if (newSong.id === oldSong.id) {
+          return
+        }
+        this.currentSong.getLyric()
         this.$nextTick(() => {
           this.$refs.audio.play()
           this.setPlaying(true)
@@ -271,7 +320,8 @@
       }
     },
     components: {
-      'progress-bar': ProgressBar
+      'progress-bar': ProgressBar,
+      'progress-circle': ProgressCircle
     }
   }
 </script>
@@ -418,7 +468,7 @@
           display: flex
           align-items: center
           width: 80%
-          margin: 0px auto
+          margin: 0 auto
           padding: 10px 0
           .time
             color: $color-text

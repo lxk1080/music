@@ -1,6 +1,9 @@
 /**
  * Created by lxk on 2017/12/13.
  */
+import { getLyric } from 'api/song'
+import { ERR_OK } from 'api/config'
+
 class Song {
   /**
    * @param id
@@ -21,6 +24,14 @@ class Song {
     this.duration = duration
     this.image = image
     this.url = url
+  }
+  getLyric() {
+    getLyric(this.mid).then((res) => {
+      if (res.code === ERR_OK) {
+        this.lyric = res.lyric
+        console.log(res)
+      }
+    })
   }
 }
 

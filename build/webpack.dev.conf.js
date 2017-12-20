@@ -33,6 +33,30 @@ const devWebpackConfig = merge(baseWebpackConfig, {
           console.log(err)
         })
       })
+
+      app.get('/api/getLyric', (req, res) => {
+        var url = 'https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg'
+        axios.get(url, {
+          headers: {
+            referer: 'https://c.y.qq.com/',
+            host: 'c.y.qq.com'
+          },
+          params: req.query
+        }).then((response) => {
+          let ret = response.data
+          // 这里虽然传递的format是json，但是返回的还是jsonp数据，做一下处理
+          if (typeof ret === 'string') {
+            const reg = /^\w+\(({.+})\)$/
+            const matches = ret.match(reg)
+            if (matches) {
+              ret = JSON.parse(matches[1]) // matches[0]: 整个匹配项 matches[1]: 匹配子表达式
+            }
+          }
+          res.json(ret)
+        }).catch((err) => {
+          console.log(err)
+        })
+      })
     },
     clientLogLevel: 'warning',
     historyApiFallback: true,

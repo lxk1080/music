@@ -3,6 +3,7 @@
  */
 import { getLyric } from 'api/song'
 import { ERR_OK } from 'api/config'
+import { Base64 } from 'js-base64'
 
 class Song {
   /**
@@ -26,11 +27,18 @@ class Song {
     this.url = url
   }
   getLyric() {
-    getLyric(this.mid).then((res) => {
-      if (res.code === ERR_OK) {
-        this.lyric = res.lyric
-        console.log(res)
-      }
+    if (this.lyric) {
+      return Promise.resolve(this.lyric)
+    }
+    return new Promise((resolve, reject) => {
+      getLyric(this.mid).then((res) => {
+        if (res.code === ERR_OK) {
+          this.lyric = Base64.decode(res.lyric)
+          resolve(this.lyric)
+        } else {
+          reject('纯音乐，无歌词')
+        }
+      })
     })
   }
 }

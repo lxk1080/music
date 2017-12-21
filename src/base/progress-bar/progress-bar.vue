@@ -37,6 +37,9 @@
         this.touch.oldOffsetWidth = this.$refs.progress.clientWidth // 记录开始的进度
       },
       progressTouchmove(e) {
+        if (!this.touch.running) {
+          return
+        }
         let barWidth = this.$refs.progressBar.clientWidth - progressBtnWidth // 总长度
         let delta = e.touches[0].pageX - this.touch.startX // 拖动距离
         let offsetWidth = Math.min(barWidth, Math.max(0, this.touch.oldOffsetWidth + delta)) // 偏移量最小0，最大是总长

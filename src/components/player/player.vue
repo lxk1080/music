@@ -19,15 +19,34 @@
           <h2 class="subtitle" v-html="currentSong.singer"></h2>
         </div>
         <div class="middle">
-          <div class="middle-l">
+          <!--图片-->
+          <div class="middle-l" v-show="showPic">
             <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd">
                 <img class="image" :class="isRotate" :src="currentSong.image">
               </div>
             </div>
           </div>
+          <!--歌词-->
+          <v-scroll class="middle-r" ref="lyricList" :data="currentLyric && currentLyric.lines">
+            <div class="lyric-wrapper">
+              <div v-if="currentLyric">
+                <p class="text"
+                   :class="{'current': currentLineNum==index}"
+                   v-for="(line,index) in currentLyric.lines"
+                   ref="lyricLine"
+                >
+                  {{line.txt}}
+                </p>
+              </div>
+            </div>
+          </v-scroll>
         </div>
         <div class="bottom">
+          <div class="dot-wrapper">
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
           <!--进度条-->
           <div class="progress-wrapper">
             <span class="time time-l">{{currentTime | timeFilter}}</span>
@@ -101,6 +120,8 @@
   import ProgressCircle from 'base/progress-circle/progress-circle'
   import { playMode } from 'common/js/config'
   import { shuffle } from 'common/js/Util'
+  import Lyric from 'lyric-parser'
+  import Scroll from 'base/scroll/scroll'
 
   const TRANSFORM = prefixStyle('transform')
 
@@ -109,7 +130,10 @@
       return {
         songReady: false,
         currentTime: 0,
-        totalTime: 0
+        totalTime: 0,
+        currentLyric: null,
+        currentLineNum: 0,
+        showPic: true
       }
     },
     computed: {
@@ -267,10 +291,24 @@
         this.setPlayList(list)
         this.setCurrentIndex(index)
       },
+      getLyric() {
+        this.currentSong.getLyric().then((lyric) => {
+          this.currentLyric = new Lyric(lyric, this._handler)
+          console.log(this.currentLyric)
+          this.currentLyric.play()
+        })
+      },
       _getNewIndex(list, song) {
         return list.findIndex((item) => {
           return item.id === song.id
         })
+      },
+      _handler({lineNum, txt}) {
+        this.currentLineNum = lineNum
+        if (lineNum > 5) {
+          let docEl = this.$refs.lyricLine[lineNum - 5]
+          this.$refs.lyricList.scrollToElement(docEl, 1000)
+        }
       },
       /**
        * 得到大图与小图圆心的x轴y轴的距离和缩放比例
@@ -306,10 +344,10 @@
         if (newSong.id === oldSong.id) {
           return
         }
-        this.currentSong.getLyric()
         this.$nextTick(() => {
           this.$refs.audio.play()
           this.setPlaying(true)
+          this.getLyric()
         })
       },
       playing(newPlaying) {
@@ -321,7 +359,8 @@
     },
     components: {
       'progress-bar': ProgressBar,
-      'progress-circle': ProgressCircle
+      'progress-circle': ProgressCircle,
+      'v-scroll': Scroll
     }
   }
 </script>

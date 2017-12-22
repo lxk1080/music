@@ -18,9 +18,12 @@
           <h1 class="title" v-html="currentSong.name"></h1>
           <h2 class="subtitle" v-html="currentSong.singer"></h2>
         </div>
-        <div class="middle">
+        <div class="middle"
+             @touchstart="midTouchstart"
+             @touchmove="midTouchmove"
+             @touchend="midTouchend">
           <!--图片-->
-          <div class="middle-l" v-show="showPic">
+          <div class="middle-l" v-show="showPic" ref="cd">
             <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd">
                 <img class="image" :class="isRotate" :src="currentSong.image">
@@ -44,8 +47,8 @@
         </div>
         <div class="bottom">
           <div class="dot-wrapper">
-            <span class="dot"></span>
-            <span class="dot"></span>
+            <span class="dot" :class="{'active': activeDot=='cd'}"></span>
+            <span class="dot" :class="{'active': activeDot=='lyric'}"></span>
           </div>
           <!--进度条-->
           <div class="progress-wrapper">
@@ -124,6 +127,7 @@
   import Scroll from 'base/scroll/scroll'
 
   const TRANSFORM = prefixStyle('transform')
+  const TRANSITION = prefixStyle('transition')
 
   export default {
     data() {
@@ -133,8 +137,12 @@
         totalTime: 0,
         currentLyric: null,
         currentLineNum: 0,
-        showPic: true
+        showPic: true,
+        activeDot: 'cd'
       }
+    },
+    created() {
+      this.touch = {}
     },
     computed: {
       isRotate() {
@@ -229,6 +237,7 @@
       },
       togglePlaying() {
         this.setPlaying(!this.playing)
+        this.currentLyric.togglePlay()
       },
       prevSong() {
         if (!this.songReady) {
@@ -295,8 +304,67 @@
         this.currentSong.getLyric().then((lyric) => {
           this.currentLyric = new Lyric(lyric, this._handler)
           console.log(this.currentLyric)
+          if (this.currentLyric.lines === 0) {
+
+          }
           this.currentLyric.play()
         })
+      },
+      midTouchstart(e) {
+        this.touch.running = true
+        this.touch.percent = 0
+        this.touch.startX = e.touches[0].pageX
+        this.touch.startY = e.touches[0].pageY
+      },
+      midTouchmove(e) {
+        if (!this.touch.running) {
+          return
+        }
+        let deltaX = e.touches[0].pageX - this.touch.startX
+        let deltaY = e.touches[0].pageY - this.touch.startY
+        // 如果是滚动歌词的操作，则不在cd与lyric之间切换
+        if (Math.abs(deltaY) > Math.abs(deltaX)) {
+          return
+        }
+        // 获取此时lyric的左边距
+        let left = this.activeDot === 'cd' ? 0 : -window.innerWidth
+        let offset = Math.min(0, Math.max(-window.innerWidth, left + deltaX))
+        this.touch.percent = Math.abs(offset / window.innerWidth)
+
+        this.$refs.lyricList.$el.style[TRANSITION] = '0s'
+        this.$refs.lyricList.$el.style[TRANSFORM] = `translate3d(${offset}px, 0, 0)`
+        this.$refs.cd.style.opacity = 1 - this.touch.percent
+      },
+      midTouchend() {
+        this.touch.running = false
+        if (this.touch.percent === 0) {
+          return
+        }
+        this.$refs.lyricList.$el.style[TRANSITION] = '0.3s'
+        this.$refs.cd.style[TRANSITION] = '0.3s'
+        let offset = null
+        let opacity = null
+        if (this.activeDot === 'cd') {
+          if (this.touch.percent > 0.1) {
+            offset = -window.innerWidth
+            opacity = 0
+            this.activeDot = 'lyric'
+          } else {
+            offset = 0
+            opacity = 1
+          }
+        } else if (this.activeDot === 'lyric') {
+            if (this.touch.percent < 0.9) {
+              offset = 0
+              opacity = 1
+              this.activeDot = 'cd'
+            } else {
+              offset = -window.innerWidth
+              opacity = 0
+            }
+        }
+        this.$refs.lyricList.$el.style[TRANSFORM] = `translate3d(${offset}px, 0, 0)`
+        this.$refs.cd.style.opacity = opacity
       },
       _getNewIndex(list, song) {
         return list.findIndex((item) => {
@@ -308,6 +376,8 @@
         if (lineNum > 5) {
           let docEl = this.$refs.lyricLine[lineNum - 5]
           this.$refs.lyricList.scrollToElement(docEl, 1000)
+        } else {
+          this.$refs.lyricList.scrollTo(0, 0, 1000)
         }
       },
       /**
@@ -347,6 +417,9 @@
         this.$nextTick(() => {
           this.$refs.audio.play()
           this.setPlaying(true)
+          if (this.currentLyric) {
+            this.currentLyric.stop()
+          }
           this.getLyric()
         })
       },

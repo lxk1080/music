@@ -16,7 +16,9 @@ const state = {
 
   mode: playMode.sequence, // 播放模式
 
-  currentIndex: -1 // 在播放列表中当前播放索引
+  currentIndex: -1, // 在播放列表中当前播放索引
+
+  desc: {} // 歌单对象
 }
 
 export default state

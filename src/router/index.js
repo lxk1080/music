@@ -6,6 +6,7 @@ import Search from 'components/search/search'
 import Singer from 'components/singer/singer'
 import Tab from 'components/tab/tab'
 import SingerDetail from 'components/singer-detail/singer-detail'
+import Desc from 'components/desc/desc'
 
 Vue.use(VueRouter)
 
@@ -21,7 +22,13 @@ export default new VueRouter({
     },
     {
       path: '/recommend',
-      component: Recommend
+      component: Recommend,
+      children: [
+        {
+          path: ':dissid',
+          component: Desc
+        }
+      ]
     },
     {
       path: '/search',

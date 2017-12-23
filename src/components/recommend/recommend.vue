@@ -15,7 +15,7 @@
         <div class="recommend-list">
           <h1 class="list-title">热门歌单推荐</h1>
           <ul>
-            <li class="item" v-for="item in descList">
+            <li class="item" v-for="item in descList" @click="selectItem(item)">
               <div class="icon">
                 <img v-lazy="item.imgurl" alt="img" width="60" height="60">
               </div>
@@ -32,6 +32,7 @@
         <v-loading></v-loading>
       </div>
     </v-scroll>
+    <router-view></router-view>
   </div>
 </template>
 
@@ -42,6 +43,7 @@
   import {getBanners, getDiscList} from 'api/recommend'
   import {ERR_OK} from 'api/config'
   import { fixBottomMixin } from 'common/js/mixin'
+  import { mapMutations } from 'vuex'
 
   export default {
     mixins: [fixBottomMixin],
@@ -56,10 +58,19 @@
       this._getDiscList()
     },
     methods: {
+      ...mapMutations({
+        setDesc: 'SET_DESC'
+      }),
       handlerBottom(playList) {
         const bottom = playList.length > 0 ? '60px' : 0
         this.$refs.recommend.style.bottom = bottom
         this.$refs.scroll.refresh()
+      },
+      selectItem(item) {
+        this.$router.push({
+          path: `/recommend/${item.dissid}`
+        })
+        this.setDesc(item)
       },
       _getBanners() {
         getBanners().then((res) => {

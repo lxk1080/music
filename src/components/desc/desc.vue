@@ -5,11 +5,11 @@
 </template>
 
 <script type="text/ecmascript-6">
+  import MusicList from 'components/music-list/music-list'
   import { mapGetters } from 'vuex'
-  import { getSingerDetail } from 'api/singer'
+  import { getDiscSongs } from 'api/recommend'
   import { ERR_OK } from 'api/config'
   import { createSong } from 'common/js/song'
-  import MusicList from 'components/music-list/music-list'
 
   export default {
     data() {
@@ -17,42 +17,42 @@
         songs: []
       }
     },
+    created() {
+      this._getDiscSongs()
+    },
     computed: {
-      ...mapGetters([
-        'singer'  // 映射 this.singer 为 this.$store.state.singer (如果要用别名，可以用对象的形式映射)
-      ]),
       title() {
-        return this.singer.name
+        return this.desc.dissname
       },
       bgImage() {
-        return this.singer.avatar
-      }
-    },
-    created() {
-      this._getSingerDetail()
+        return this.desc.imgurl
+      },
+      ...mapGetters([
+        'desc'
+      ])
     },
     methods: {
-      _getSingerDetail() {
-        if (!this.singer.mid) { // 刷新返回歌手列表
-          this.$router.push({path: '/singer'})
+      _getDiscSongs() {
+        if (!this.desc.dissid) {
+          this.$router.push({
+            path: '/recommend'
+          })
           return
         }
-        getSingerDetail(this.singer.mid).then((res) => {
+        getDiscSongs(this.desc.dissid).then((res) => {
           if (res.code === ERR_OK) {
-            this.songs = this._dataHandler(res.data.list)
-            console.log(this.songs)
+            this.songs = this._dataHandler(res.cdlist[0].songlist)
           }
         })
       },
       _dataHandler(list) {
-        let data = []
-        list.forEach((item) => {
-          let {musicData} = item
+        let ret = []
+        list.forEach((musicData) => {
           if (musicData.songid && musicData.albummid) {
-            data.push(createSong(musicData))
+            ret.push(createSong(musicData))
           }
         })
-        return data
+        return ret
       }
     },
     components: {
@@ -62,11 +62,8 @@
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
-  @import "~common/stylus/variable"
-
   .slide-enter-active, .slide-leave-active
     transition: all 0.3s
   .slide-enter, .slide-leave-to
     transform: translate3d(100%, 0, 0)
-
 </style>

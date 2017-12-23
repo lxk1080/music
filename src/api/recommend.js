@@ -39,3 +39,27 @@ export function getDiscList () {
     return Promise.resolve(res.data)
   })
 }
+
+// 获取歌单里的歌曲
+export function getDiscSongs(dissid) {
+  const url = '/api/getDiscSongs'
+
+  const data = Object.assign({}, commonParams, {
+    type: '1',
+    json: '1',
+    utf8: '1',
+    onlysong: 0,
+    disstid: dissid,
+    loginUin: 0,
+    hostUin: 0,
+    platform: 'yqq',
+    needNewCode: 0,
+    format: 'json'
+  })
+
+  return axios.get(url, {
+    params: data
+  }).then((res) => {
+    return Promise.resolve(res.data)
+  })
+}

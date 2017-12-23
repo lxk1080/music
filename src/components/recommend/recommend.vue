@@ -1,5 +1,5 @@
 <template>
-  <div class="recommend">
+  <div class="recommend" ref="recommend">
     <v-scroll ref="scroll" class="recommend-content" :data="descList">
       <!--滚动区域-->
       <div>
@@ -41,8 +41,10 @@
   import Slider from 'base/slider/slider'
   import {getBanners, getDiscList} from 'api/recommend'
   import {ERR_OK} from 'api/config'
+  import { fixBottomMixin } from 'common/js/mixin'
 
   export default {
+    mixins: [fixBottomMixin],
     data() {
       return {
         banners: [],
@@ -54,6 +56,11 @@
       this._getDiscList()
     },
     methods: {
+      handlerBottom(playList) {
+        const bottom = playList.length > 0 ? '60px' : 0
+        this.$refs.recommend.style.bottom = bottom
+        this.$refs.scroll.refresh()
+      },
       _getBanners() {
         getBanners().then((res) => {
           if (res.code === ERR_OK) {

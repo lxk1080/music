@@ -29,6 +29,9 @@
                 <img class="image" :class="isRotate" :src="currentSong.image">
               </div>
             </div>
+            <div class="playing-lyric-wrapper">
+              <div class="playing-lyric">{{playingLyric}}</div>
+            </div>
           </div>
           <!--歌词-->
           <v-scroll class="middle-r" ref="lyricList" :data="currentLyric && currentLyric.lines">
@@ -138,7 +141,8 @@
         currentLyric: null,
         currentLineNum: 0,
         showPic: true,
-        activeDot: 'cd'
+        activeDot: 'cd',
+        playingLyric: ''
       }
     },
     created() {
@@ -236,29 +240,42 @@
         this.$refs.cdWrapper.style[TRANSFORM] = 'none'
       },
       togglePlaying() {
+        if (!this.songReady) {
+          return
+        }
         this.setPlaying(!this.playing)
-        this.currentLyric.togglePlay()
+        if (this.currentLyric) {
+          this.currentLyric.togglePlay()
+        }
       },
       prevSong() {
         if (!this.songReady) {
           return
         }
-        let index = this.currentIndex - 1
-        if (index === -1) {
-          index = this.playList.length - 1
+        if (this.playList.length === 1) {
+          this.loop()
+        } else {
+          let index = this.currentIndex - 1
+          if (index === -1) {
+            index = this.playList.length - 1
+          }
+          this.setCurrentIndex(index)
         }
-        this.setCurrentIndex(index)
         this.songReady = false
       },
       nextSong() {
         if (!this.songReady) {
           return
         }
-        let index = this.currentIndex + 1
-        if (index === this.playList.length) {
-          index = 0
+        if (this.playList.length === 1) {
+          this.loop()
+        } else {
+          let index = this.currentIndex + 1
+          if (index === this.playList.length) {
+            index = 0
+          }
+          this.setCurrentIndex(index)
         }
-        this.setCurrentIndex(index)
         this.songReady = false
       },
       songCanplay(e) {
@@ -271,19 +288,30 @@
       },
       songEnd() {
         if (this.mode === playMode.loop) {
-          this.$refs.audio.currentTime = 0
-          this.$refs.audio.play()
+          this.loop()
         } else {
           this.nextSong()
+        }
+      },
+      loop() {
+        this.$refs.audio.currentTime = 0
+        this.$refs.audio.play()
+        if (this.currentLyric) {
+          this.currentLyric.seek(0)
         }
       },
       doSomething(e) {
         this.currentTime = e.target.currentTime
       },
       doPercentChange(percent) {
-        this.$refs.audio.currentTime = this.totalTime * percent
+        const currentTime = this.totalTime * percent
+        this.$refs.audio.currentTime = currentTime
         if (!this.playing) {
           this.setPlaying(true)
+        }
+        // 到对应的歌词
+        if (this.currentLyric) {
+          this.currentLyric.seek(currentTime * 1000) // 单位ms
         }
       },
       modeChange() {
@@ -304,11 +332,29 @@
         this.currentSong.getLyric().then((lyric) => {
           this.currentLyric = new Lyric(lyric, this._handler)
           console.log(this.currentLyric)
-          if (this.currentLyric.lines === 0) {
-
+          if (this.currentLyric.lines.length === 0) {
+            let tab = {time: 0, txt: ''}
+            for (let i = 0; i < 5; i++) {
+              this.currentLyric.lines.push(tab)
+            }
+            this.currentLyric.lines.push({time: 1, txt: '纯音乐，请欣赏'})
           }
           this.currentLyric.play()
+        }).catch(() => {
+          this.currentLyric = null
+          this.currentLineNum = 0
+          this.playingLyric = ''
         })
+      },
+      _handler({lineNum, txt}) {
+        this.currentLineNum = lineNum
+        this.playingLyric = txt
+        if (lineNum > 5) {
+          let docEl = this.$refs.lyricLine[lineNum - 5]
+          this.$refs.lyricList.scrollToElement(docEl, 1000)
+        } else {
+          this.$refs.lyricList.scrollTo(0, 0, 1000)
+        }
       },
       midTouchstart(e) {
         this.touch.running = true
@@ -371,15 +417,6 @@
           return item.id === song.id
         })
       },
-      _handler({lineNum, txt}) {
-        this.currentLineNum = lineNum
-        if (lineNum > 5) {
-          let docEl = this.$refs.lyricLine[lineNum - 5]
-          this.$refs.lyricList.scrollToElement(docEl, 1000)
-        } else {
-          this.$refs.lyricList.scrollTo(0, 0, 1000)
-        }
-      },
       /**
        * 得到大图与小图圆心的x轴y轴的距离和缩放比例
        * @return {{x: number, y: number, scale: number}}
@@ -414,14 +451,14 @@
         if (newSong.id === oldSong.id) {
           return
         }
-        this.$nextTick(() => {
+        if (this.currentLyric) {
+          this.currentLyric.stop()
+        }
+        setTimeout(() => {
           this.$refs.audio.play()
           this.setPlaying(true)
-          if (this.currentLyric) {
-            this.currentLyric.stop()
-          }
           this.getLyric()
-        })
+        }, 1000)
       },
       playing(newPlaying) {
         this.$nextTick(() => {
@@ -533,6 +570,7 @@
             .playing-lyric
               height: 20px
               line-height: 20px
+              letter-spacing: 1px
               font-size: $font-size-medium
               color: $color-text-l
         .middle-r
@@ -547,7 +585,9 @@
             overflow: hidden
             text-align: center
             .text
+              height: 32px
               line-height: 32px
+              letter-spacing: 1px
               color: $color-text-l
               font-size: $font-size-medium
               &.current

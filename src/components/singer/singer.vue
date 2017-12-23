@@ -1,6 +1,6 @@
 <template>
-  <div class="singer">
-    <v-listview :data="singers" @entryDetail="entryDetail"></v-listview>
+  <div class="singer" ref="singer">
+    <v-listview :data="singers" @entryDetail="entryDetail" ref="list"></v-listview>
     <router-view></router-view>
   </div>
 </template>
@@ -11,11 +11,13 @@
   import Singer from 'common/js/singer'
   import Listview from 'base/listview/listview'
   import { mapMutations } from 'vuex'
+  import { fixBottomMixin } from 'common/js/mixin'
 
   const HOT_NAME = '热门'
   const HOT_SINGER_LEN = 10
 
   export default {
+    mixins: [fixBottomMixin],
     data() {
       return {
         singers: []
@@ -25,6 +27,11 @@
       this._getSingerList()
     },
     methods: {
+      handlerBottom(playList) {
+        const bottom = playList.length > 0 ? '60px' : 0
+        this.$refs.singer.style.bottom = bottom
+        this.$refs.list.refresh()
+      },
       entryDetail(singer) {
         // 调用 router.push(...)等同于<router-link :to="...">
         this.$router.push({

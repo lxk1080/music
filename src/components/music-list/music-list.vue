@@ -36,6 +36,7 @@
   import Loading from 'base/loading/loading'
   import { prefixStyle } from 'common/js/dom'
   import { mapActions } from 'vuex'
+  import { fixBottomMixin } from 'common/js/mixin'
 
   const RESERVED_HEIGHT = 40
   const TRANSFORM = prefixStyle('transform')
@@ -43,6 +44,7 @@
   const BOX_SHADOW = prefixStyle('boxShadow')
 
   export default {
+    mixins: [fixBottomMixin],
     props: {
       title: {
         type: String,
@@ -78,6 +80,11 @@
       }
     },
     methods: {
+      handlerBottom(playList) {
+        const bottom = playList.length > 0 ? '60px' : 0
+        this.$refs.list.$el.style.bottom = bottom
+        this.$refs.list.refresh()
+      },
       ...mapActions([
         'playSongAction',
         'randomPlayAction'

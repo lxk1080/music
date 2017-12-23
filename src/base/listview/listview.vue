@@ -103,6 +103,9 @@
         this.posY = pos.y
         this.scrollY = Math.abs(this.posY | 0)
       },
+      refresh() {
+        this.$refs.listview.refresh()
+      },
       _scrollToElement(index) {
         this.currentIndex = parseInt(index)
         this.$refs.listview.scrollToElement(this.$refs.listGroup[index], 1000)

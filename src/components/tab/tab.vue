@@ -1,16 +1,24 @@
 <template>
   <div class="tab">
-    <router-link tag="div" class="tab-item" to="/recommend" @click="moveLine(1)">
-      <span class="tab-link">推荐</span>
+    <router-link tag="div" class="tab-item" to="/recommend">
+      <div class="tab-wrapper" @click="moveLine" data-index="0">
+        <span class="tab-link">推荐</span>
+      </div>
     </router-link>
-    <router-link tag="div" class="tab-item" to="/singer" @click="moveLine(2)">
-      <span class="tab-link">歌手</span>
+    <router-link tag="div" class="tab-item" to="/singer">
+      <div class="tab-wrapper" @click="moveLine" data-index="1">
+        <span class="tab-link">歌手</span>
+      </div>
     </router-link>
-    <router-link tag="div" class="tab-item" to="/rank" @click="moveLine(3)">
-      <span class="tab-link">排行</span>
+    <router-link tag="div" class="tab-item" to="/rank">
+      <div class="tab-wrapper" @click="moveLine" data-index="2">
+        <span class="tab-link">排行</span>
+      </div>
     </router-link>
-    <router-link tag="div" class="tab-item" to="/search" @click="moveLine(4)">
-      <span class="tab-link">搜索</span>
+    <router-link tag="div" class="tab-item" to="/search">
+      <div class="tab-wrapper" @click="moveLine" data-index="3">
+        <span class="tab-link">搜索</span>
+      </div>
     </router-link>
 
     <div class="line" ref="line"></div>
@@ -24,11 +32,29 @@
   const TRANSFORM = prefixStyle('transform')
 
   export default {
+    mounted() {
+      let tabWrapper = document.getElementsByClassName('tab-wrapper')
+      if (!localStorage.musicTab) {
+        localStorage.musicTab = 0
+      }
+      tabWrapper[parseInt(localStorage.musicTab)].click()
+    },
     methods: {
-      moveLine(num) {
-        console.log(123)
-        this.$refs.line.style[TRANSITION] = '0.3s'
-        this.$refs.line.style[TRANSFORM] = `translate3d(${parseInt(num) * 30}px, 0, 0)`
+      moveLine(e) {
+        let target = null
+        let left = 0
+        let child = e.target.getElementsByTagName('span')
+        // 判断点击的是父元素还是子元素
+        if (child.length) {
+          left = parseInt(child[0].offsetLeft)
+          target = e.target
+        } else {
+          left = parseInt(e.target.offsetLeft)
+          target = e.target.parentNode
+        }
+        localStorage.musicTab = target.dataset.index
+        this.$refs.line.style[TRANSITION] = '0.2s'
+        this.$refs.line.style[TRANSFORM] = `translate3d(${left}px, 0, 0)`
 
         return false
       }
@@ -56,8 +82,8 @@
           border-bottom: 2px solid $color-theme
     .line
       position absolute
-      left: 32px
+      left: 0
       bottom: 3px
-      width: 30px
+      width: 28px
       border-bottom: 2px solid $color-theme
 </style>

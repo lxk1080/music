@@ -1,7 +1,7 @@
 /**
  * Created by lxk on 2017/12/12.
  */
-import { playMode } from 'common/js/config'
+import { playMode, tabs } from 'common/js/config'
 
 const state = {
   singer: {}, // 歌手对象

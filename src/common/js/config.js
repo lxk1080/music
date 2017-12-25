@@ -6,3 +6,10 @@ export const playMode = {
   loop: 1,
   random: 2
 }
+
+export const tabs = {
+  recommend: 0,
+  singer: 1,
+  rank: 2,
+  searchL: 3
+}

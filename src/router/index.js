@@ -7,6 +7,7 @@ import Singer from 'components/singer/singer'
 import Tab from 'components/tab/tab'
 import SingerDetail from 'components/singer-detail/singer-detail'
 import Desc from 'components/desc/desc'
+import TopList from 'components/top-list/top-list'
 
 Vue.use(VueRouter)
 
@@ -18,7 +19,13 @@ export default new VueRouter({
     },
     {
       path: '/rank',
-      component: Rank
+      component: Rank,
+      children: [
+        {
+          path: ':id',
+          component: TopList
+        }
+      ]
     },
     {
       path: '/recommend',

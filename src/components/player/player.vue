@@ -30,7 +30,7 @@
               </div>
             </div>
             <div class="playing-lyric-wrapper">
-              <div class="playing-lyric">{{playingLyric}}</div>
+              <div class="playing-lyric" ref="playingLyric">{{playingLyric}}</div>
             </div>
           </div>
           <!--歌词-->
@@ -131,6 +131,7 @@
 
   const TRANSFORM = prefixStyle('transform')
   const TRANSITION = prefixStyle('transition')
+  // const TRANSFORM_ORIGIN = prefixStyle('transformOrigin')
 
   export default {
     data() {
@@ -285,6 +286,14 @@
       songError() {
         this.songReady = true
         this.totalTime = 0
+        this.timer = setInterval(() => {
+          if (this.currentLyric) {
+            this.currentLyric.lines.splice(0, this.currentLyric.lines.length, {time: 0, txt: '该歌曲为付费内容！'})
+            this.playingLyric = this.currentLyric.lines[0].txt
+
+            clearTimeout(this.timer)
+          }
+        }, 100)
       },
       songEnd() {
         if (this.mode === playMode.loop) {
@@ -453,6 +462,7 @@
         }
         if (this.currentLyric) {
           this.currentLyric.stop()
+          this.currentLyric = null
         }
         setTimeout(() => {
           this.$refs.audio.play()
@@ -466,6 +476,16 @@
           newPlaying ? audio.play() : audio.pause()
         })
       }
+      // 监听当前歌词
+      /* currentLineNum() {
+        if (!this.i) {
+          this.i = 0
+        }
+        this.i = this.i - 360
+        this.$refs.playingLyric.style[TRANSITION] = '0.3s'
+        this.$refs.playingLyric.style[TRANSFORM_ORIGIN] = '0 0'
+        this.$refs.playingLyric.style[TRANSFORM] = `rotate(${this.i}deg)`
+      } */
     },
     components: {
       'progress-bar': ProgressBar,

@@ -18,7 +18,9 @@ const state = {
 
   currentIndex: -1, // 在播放列表中当前播放索引
 
-  desc: {} // 歌单对象
+  desc: {}, // 歌单对象
+
+  topList: {} // 排行榜对象
 }
 
 export default state

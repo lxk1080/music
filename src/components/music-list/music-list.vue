@@ -20,7 +20,7 @@
     <!--歌曲列表-->
     <v-scroll class="list" ref="list" :data="songs" :probeType="probeType" :listenScroll="listenScroll" @scroll="scroll">
       <div class="song-list-wrapper">
-        <song-list :songs="songs" @playSong="playSong" ></song-list>
+        <song-list :rank="rank" :songs="songs" @playSong="playSong" ></song-list>
       </div>
       <!--loading-->
       <div class="loading-container" v-show="!songs.length">
@@ -57,6 +57,10 @@
       songs: {
         type: Array,
         default: []
+      },
+      rank: {
+        type: Boolean,
+        default: false
       }
     },
     data() {

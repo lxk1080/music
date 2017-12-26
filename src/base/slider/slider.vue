@@ -89,29 +89,32 @@
           },
           click: true // better-scroll的click事件会阻止默认的click事件
         })
-
+        // 在开始滚动时清除定时器，避免在处于触摸状态时自动轮播
+        this.slider.on('beforeScrollStart', () => {
+          if (this.autoPlay) {
+            clearTimeout(this.timer)
+          }
+        })
+        // 在触摸结束时，恢复其自动轮播
+        this.slider.on('touchend', () => {
+          if (this.autoPlay) {
+            this._autoPlay()
+          }
+        })
+        // 每次滚动结束后，重置自动轮播
         this.slider.on('scrollEnd', () => {
           let pageIndex = this.slider.getCurrentPage().pageX
-          // 如果设置循环，则在原本滑块的开头和末尾各加一个过渡滑块，此时所有原本滑块的索引加一
-          if (this.loop) {
-            pageIndex = pageIndex - 1
-          }
           this.currentPageIndex = pageIndex
-
-          if (this._autoPlay) {
-            // 每次滑动后重置定时器，防止在手动滑动后发生立即再一次滑动的情况发生
-            clearTimeout(this.timer)
+          if (this.autoPlay) {
             this._autoPlay()
           }
         })
       },
       _autoPlay() {
-        let pageIndex = this.currentPageIndex + 1
-        if (this.loop) {
-          pageIndex = pageIndex + 1
-        }
+        // 每次滑动后重置定时器，防止在手动滑动后立即再一次滑动
+        clearTimeout(this.timer)
         this.timer = setTimeout(() => {
-          this.slider.goToPage(pageIndex, 0, 400)
+          this.slider.next()
         }, this.interval)
       }
     },

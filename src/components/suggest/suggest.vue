@@ -47,6 +47,7 @@
         result: [],
         pullUp: true,
         hasMore: true,
+        hasLock: false,
         loadingTitle: '加载中...'
       }
     },
@@ -73,7 +74,7 @@
         }
       },
       search() {
-        this.hasmore = true
+        this.hasMore = true
         this.page = 1
         this.$refs.suggest.scrollTo(0, 0)
         musicSearch(this.query, this.page, this.showSinger, PERPAGE).then((res) => {
@@ -88,12 +89,20 @@
         if (!this.hasMore) {
           return
         }
+        // 如果被锁上
+        if (this.hasLock) {
+          return
+        }
+        this.hasLock = true // 加锁
         this.page++
         musicSearch(this.query, this.page, this.showSinger, PERPAGE).then((res) => {
           if (res.code === ERR_OK) {
             this.result = [...this.result, ...this._genResult(res.data)]
             this._checkMore(res.data)
           }
+          this.hasLock = false // 开锁
+        }).catch(() => {
+          this.hasLock = false // 开锁
         })
       },
       _genResult(data) {

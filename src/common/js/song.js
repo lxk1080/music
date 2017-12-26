@@ -56,7 +56,7 @@ export function createSong (musicData) {
   })
 }
 
-function singerFilter (singer) {
+export function singerFilter (singer) {
   let data = []
   if (!singer) {
     return ''

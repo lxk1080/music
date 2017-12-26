@@ -85,5 +85,5 @@
       left: 0
       bottom: 3px
       width: 28px
-      border-bottom: 2px solid $color-theme
+      border-bottom: 2px solid #e51419
 </style>

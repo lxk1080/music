@@ -25,6 +25,11 @@
       listenScroll: {
         type: Boolean,
         default: false
+      },
+      // 是否开启上拉加载
+      pullUp: {
+        type: Boolean,
+        default: false
       }
     },
     mounted() {
@@ -48,6 +53,15 @@
           this.slider.on('scroll', (pos) => { // pos是滚动位置的对象
             // 此环境的this会指向 better-scroll
             me.$emit('scroll', pos)
+          })
+        }
+
+        if (this.pullUp) {
+          this.slider.on('scrollEnd', () => {
+            // maxScrollY也为负值
+            if (this.slider.y < this.slider.maxScrollY + 50) {
+              this.$emit('scrollToEnd')
+            }
           })
         }
       },

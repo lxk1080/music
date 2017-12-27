@@ -18,8 +18,8 @@
       </div>
     </div>
     <!--搜索结果-->
-    <div class="search-result" v-show="query">
-      <v-suggest :query="query"></v-suggest>
+    <div class="search-result" ref="searchResult" v-show="query">
+      <v-suggest ref="suggest" :query="query"></v-suggest>
     </div>
   </div>
 </template>
@@ -29,8 +29,10 @@
   import { getHotKey } from 'api/search'
   import { ERR_OK } from 'api/config'
   import Suggest from 'components/suggest/suggest'
+  import { fixBottomMixin } from 'common/js/mixin'
 
   export default {
+    mixins: [fixBottomMixin],
     data() {
       return {
         query: '',
@@ -41,6 +43,11 @@
       this._getHotKey()
     },
     methods: {
+      handlerBottom(playList) {
+        const bottom = playList.length > 0 ? '60px' : 0
+        this.$refs.searchResult.style.bottom = bottom
+        this.$refs.suggest.refresh()
+      },
       addQuery(item) {
         this.$refs.searchBox.addQuery(item.k)
       },

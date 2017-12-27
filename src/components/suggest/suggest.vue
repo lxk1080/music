@@ -6,7 +6,7 @@
             ref="suggest"
   >
     <ul class="suggest-list">
-      <li class="suggest-item" v-for="item in result">
+      <li class="suggest-item" v-for="item in result" @click="selectItem(item)">
         <div class="icon">
           <i :class="getIcon(item)"></i>
         </div>
@@ -15,8 +15,9 @@
           <p class="desc" v-html="getDisplayDesc(item)"></p>
         </div>
       </li>
-      <v-loading :title="loadingTitle" v-show="hasMore"></v-loading>
+      <v-loading :title="loadingTitle" :size="20" v-show="hasMore"></v-loading>
     </ul>
+    <router-view></router-view>
   </v-scroll>
 </template>
 
@@ -26,6 +27,8 @@
   import { createSong } from 'common/js/song'
   import Scroll from 'base/scroll/scroll'
   import Loading from 'base/loading/loading'
+  import Singer from 'common/js/singer'
+  import { mapMutations, mapActions } from 'vuex'
 
   const TYPE_SINGER = 'singer'
   const PERPAGE = 20
@@ -48,10 +51,31 @@
         pullUp: true,
         hasMore: true,
         hasLock: false,
-        loadingTitle: '加载中...'
+        loadingTitle: 'searing...'
       }
     },
     methods: {
+      ...mapMutations({
+        setSinger: 'SET_SINGER'
+      }),
+      ...mapActions({
+        insertSong: 'insertSongAction'
+      }),
+      refresh() {
+        this.$refs.suggest.refresh()
+      },
+      selectItem(item) {
+        // 如果是歌手
+        if (item.type === TYPE_SINGER) {
+          this.$router.push({
+            path: `/search/${item.singermid}`
+          })
+          this.setSinger(new Singer(item.singermid, item.singername))
+        // 如果是歌曲
+        } else {
+          this.insertSong(item)
+        }
+      },
       getIcon(item) {
         if (item.type === TYPE_SINGER) {
           return 'icon-mine'

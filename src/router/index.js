@@ -39,7 +39,13 @@ export default new VueRouter({
     },
     {
       path: '/search',
-      component: Search
+      component: Search,
+      children: [
+        {
+          path: ':mid',
+          component: SingerDetail
+        }
+      ]
     },
     {
       path: '/singer',

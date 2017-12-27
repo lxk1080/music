@@ -1,6 +1,6 @@
 <template>
   <div class="loading">
-    <img src="./loading.gif" alt="img" width="30" height="30">
+    <img src="./loading.gif" alt="img" :width="size" :height="size">
     <p class="desc">{{title}}</p>
   </div>
 </template>
@@ -11,6 +11,10 @@
       title: {
         type: String,
         default: '载入中...'
+      },
+      size: {
+        type: Number,
+        default: 30
       }
     }
   }

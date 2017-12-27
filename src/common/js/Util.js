@@ -1,6 +1,7 @@
 /**
  * Created by lxk on 2017/12/20.
  */
+// 获取随机数
 function getRandomInt (min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min)
 }
@@ -15,4 +16,18 @@ export function shuffle (arr) {
     newArr[j] = tmp
   }
   return newArr
+}
+
+// 节流函数
+export function debounce (func, delay) {
+  let timer
+
+  return function (...args) {
+    if (timer) {
+      clearTimeout(timer)
+    }
+    timer = setTimeout(() => {
+      func.apply(this, args)
+    }, delay)
+  }
 }

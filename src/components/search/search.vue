@@ -19,8 +19,9 @@
     </div>
     <!--搜索结果-->
     <div class="search-result" ref="searchResult" v-show="query">
-      <v-suggest ref="suggest" :query="query"></v-suggest>
+      <v-suggest ref="suggest" :query="query" @scrollStart="blurInput"></v-suggest>
     </div>
+    <router-view></router-view>
   </div>
 </template>
 
@@ -47,6 +48,9 @@
         const bottom = playList.length > 0 ? '60px' : 0
         this.$refs.searchResult.style.bottom = bottom
         this.$refs.suggest.refresh()
+      },
+      blurInput() {
+        this.$refs.searchBox.blur()
       },
       addQuery(item) {
         this.$refs.searchBox.addQuery(item.k)

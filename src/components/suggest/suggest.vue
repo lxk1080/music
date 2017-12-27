@@ -2,7 +2,9 @@
   <v-scroll class="suggest"
             :data="result"
             :pullUp="pullUp"
+            :beforeScroll="beforeScroll"
             @scrollToEnd="searchMore"
+            @scrollStart="scrollStart"
             ref="suggest"
   >
     <ul class="suggest-list">
@@ -17,7 +19,9 @@
       </li>
       <v-loading :title="loadingTitle" :size="20" v-show="hasMore"></v-loading>
     </ul>
-    <router-view></router-view>
+    <div class="no-result-wrapper" v-show="!hasMore && !result.length">
+      <no-result :title="noResult"></no-result>
+    </div>
   </v-scroll>
 </template>
 
@@ -29,6 +33,7 @@
   import Loading from 'base/loading/loading'
   import Singer from 'common/js/singer'
   import { mapMutations, mapActions } from 'vuex'
+  import NoResult from 'base/no-result/no-result'
 
   const TYPE_SINGER = 'singer'
   const PERPAGE = 20
@@ -51,16 +56,21 @@
         pullUp: true,
         hasMore: true,
         hasLock: false,
-        loadingTitle: 'searing...'
+        loadingTitle: 'searing...',
+        noResult: '抱歉，没有找到你要的内容 T_T',
+        beforeScroll: true
       }
     },
     methods: {
       ...mapMutations({
         setSinger: 'SET_SINGER'
       }),
-      ...mapActions({
-        insertSong: 'insertSongAction'
-      }),
+      ...mapActions([
+        'insertSongAction'
+      ]),
+      scrollStart() {
+        this.$emit('scrollStart')
+      },
       refresh() {
         this.$refs.suggest.refresh()
       },
@@ -73,7 +83,7 @@
           this.setSinger(new Singer(item.singermid, item.singername))
         // 如果是歌曲
         } else {
-          this.insertSong(item)
+          this.insertSongAction(item)
         }
       },
       getIcon(item) {
@@ -162,7 +172,8 @@
     },
     components: {
       'v-scroll': Scroll,
-      'v-loading': Loading
+      'v-loading': Loading,
+      'no-result': NoResult
     }
   }
 </script>
@@ -202,6 +213,6 @@
     .no-result-wrapper
       position: absolute
       width: 100%
-      top: 50%
+      top: 40%
       transform: translateY(-50%)
 </style>

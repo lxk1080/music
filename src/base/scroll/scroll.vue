@@ -30,6 +30,11 @@
       pullUp: {
         type: Boolean,
         default: false
+      },
+      // 是否开启开始滚动时通知
+      beforeScroll: {
+        type: Boolean,
+        default: false
       }
     },
     mounted() {
@@ -62,6 +67,12 @@
             if (this.slider.y < this.slider.maxScrollY + 50) {
               this.$emit('scrollToEnd')
             }
+          })
+        }
+
+        if (this.beforeScroll) {
+          this.slider.on('beforeScrollStart', () => {
+            this.$emit('scrollStart')
           })
         }
       },

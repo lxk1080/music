@@ -18,3 +18,5 @@ export const SET_CURRENT_INDEX = 'SET_CURRENT_INDEX'
 export const SET_DESC = 'SET_DESC'
 
 export const SET_TOP_LIST = 'SET_TOP_LIST'
+
+export const SET_SEARCH_HISTORY = 'SET_SEARCH_HISTORY'

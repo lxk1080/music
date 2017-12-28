@@ -6,6 +6,7 @@
 
 <script type="text/ecmascript-6">
   import BScroll from 'better-scroll'
+
   export default {
     props: {
       // 派发 scroll 事件的时机
@@ -50,7 +51,8 @@
         this.slider = new BScroll(this.$refs.wrapper, {
           probeType: this.probeType,
           click: this.click,
-          bounceTime: 500
+          bounceTime: 600,
+          swipeBounceTime: 400
         })
 
         if (this.listenScroll) {

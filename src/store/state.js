@@ -2,6 +2,7 @@
  * Created by lxk on 2017/12/12.
  */
 import { playMode } from 'common/js/config'
+import { loadSearch } from 'common/js/cache'
 
 const state = {
   singer: {}, // 歌手对象
@@ -20,7 +21,9 @@ const state = {
 
   desc: {}, // 歌单对象
 
-  topList: {} // 排行榜对象
+  topList: {}, // 排行榜对象
+
+  searchHistory: loadSearch() // 搜索历史
 }
 
 export default state

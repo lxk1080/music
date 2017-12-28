@@ -85,6 +85,7 @@
         } else {
           this.insertSongAction(item)
         }
+        this.$emit('saveSearch', this.query)
       },
       getIcon(item) {
         if (item.type === TYPE_SINGER) {

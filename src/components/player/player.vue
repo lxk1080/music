@@ -99,15 +99,18 @@
             <i class="icon-mini" :class="playIconMini" @click.stop="togglePlaying"></i>
           </progress-circle>
         </div>
-        <div class="control">
+        <div class="control" @click.stop="showPlaylist">
           <i class="icon-playlist"></i>
         </div>
       </div>
     </transition>
+    <!--播放列表-->
+    <v-playlist ref="playlist"></v-playlist>
     <!--播放器-->
     <!--
       oncanplay: 当文件就绪可以开始播放时（这里是为了防止快速切歌的标志位）
       onerror: 文件加载期间发生错误时（发生错误时songReady也得为true，否则就切不了歌了）
+      onended: 歌曲播放完成时
     -->
     <audio :src="currentSong.url" ref="audio"
            @canplay="songCanplay"
@@ -128,6 +131,7 @@
   import { shuffle } from 'common/js/Util'
   import Lyric from 'lyric-parser'
   import Scroll from 'base/scroll/scroll'
+  import Playlist from 'components/playlist/playlist'
 
   const TRANSFORM = prefixStyle('transform')
   const TRANSITION = prefixStyle('transition')
@@ -192,6 +196,9 @@
         setMode: 'SET_MODE',
         setPlayList: 'SET_PLAY_LIST'
       }),
+      showPlaylist() {
+        this.$refs.playlist.show()
+      },
       setMini() {
         this.setFullScreen(false)
       },
@@ -490,7 +497,8 @@
     components: {
       'progress-bar': ProgressBar,
       'progress-circle': ProgressCircle,
-      'v-scroll': Scroll
+      'v-scroll': Scroll,
+      'v-playlist': Playlist
     }
   }
 </script>
@@ -733,9 +741,12 @@
         flex: 0 0 30px
         width: 30px
         padding: 0 10px
-        .icon-play-mini, .icon-pause-mini, .icon-playlist
+        .icon-play-mini, .icon-pause-mini
           font-size: 30px
           color: $color-theme-d
+        .icon-playlist
+          font-size: 30px
+          color: $color-theme-l
         .icon-mini
           font-size: 32px
           position: absolute

@@ -128,16 +128,17 @@
   import ProgressBar from 'base/progress-bar/progress-bar'
   import ProgressCircle from 'base/progress-circle/progress-circle'
   import { playMode } from 'common/js/config'
-  import { shuffle } from 'common/js/Util'
   import Lyric from 'lyric-parser'
   import Scroll from 'base/scroll/scroll'
   import Playlist from 'components/playlist/playlist'
+  import { modeChangeMixin } from 'common/js/mixin'
 
   const TRANSFORM = prefixStyle('transform')
   const TRANSITION = prefixStyle('transition')
   // const TRANSFORM_ORIGIN = prefixStyle('transformOrigin')
 
   export default {
+    mixins: [modeChangeMixin],
     data() {
       return {
         songReady: false,
@@ -169,32 +170,17 @@
       getPercent() {
         return this.currentTime / this.totalTime
       },
-      iconMode() {
-        if (this.mode === playMode.sequence) {
-          return 'icon-sequence'
-        }
-        if (this.mode === playMode.random) {
-          return 'icon-random'
-        }
-        return 'icon-loop'
-      },
       ...mapGetters([
         'fullScreen',
         'playList',
-        'currentSong',
         'playing',
-        'currentIndex',
-        'mode',
-        'sequenceList'
+        'currentIndex'
       ])
     },
     methods: {
       ...mapMutations({
         setFullScreen: 'SET_FULL_SCREEN',
-        setPlaying: 'SET_PLAYING',
-        setCurrentIndex: 'SET_CURRENT_INDEX',
-        setMode: 'SET_MODE',
-        setPlayList: 'SET_PLAY_LIST'
+        setPlaying: 'SET_PLAYING'
       }),
       showPlaylist() {
         this.$refs.playlist.show()
@@ -330,20 +316,6 @@
           this.currentLyric.seek(currentTime * 1000) // 单位ms
         }
       },
-      modeChange() {
-        let mode = (this.mode + 1) % 3
-        this.setMode(mode)
-        let list = null
-        if (mode === playMode.random) {
-          list = shuffle(this.sequenceList)
-        } else {
-          list = this.sequenceList
-        }
-        // 获取当前歌曲在新列表里的索引
-        let index = this._getNewIndex(list, this.currentSong)
-        this.setPlayList(list)
-        this.setCurrentIndex(index)
-      },
       getLyric() {
         this.currentSong.getLyric().then((lyric) => {
           this.currentLyric = new Lyric(lyric, this._handler)
@@ -427,11 +399,6 @@
         }
         this.$refs.lyricList.$el.style[TRANSFORM] = `translate3d(${offset}px, 0, 0)`
         this.$refs.cd.style.opacity = opacity
-      },
-      _getNewIndex(list, song) {
-        return list.findIndex((item) => {
-          return item.id === song.id
-        })
       },
       /**
        * 得到大图与小图圆心的x轴y轴的距离和缩放比例

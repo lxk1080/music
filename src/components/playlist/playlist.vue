@@ -4,8 +4,8 @@
       <div class="list-wrapper" @click.stop>
         <div class="list-header">
           <h1 class="title">
-            <i class="icon"></i>
-            <span class="text"></span>
+            <i class="icon" :class="iconMode" @click="modeChange"></i>
+            <span class="text" @click="modeChange">{{getModeText}}</span>
             <span class="clear" @click="alertConfirm">
               <i class="icon-clear"></i>
             </span>
@@ -45,8 +45,11 @@
   import { mapGetters, mapMutations, mapActions } from 'vuex'
   import Scroll from 'base/scroll/scroll'
   import Confirm from 'base/confirm/confirm'
+  import { modeChangeMixin } from 'common/js/mixin'
+  import { playMode } from 'common/js/config'
 
   export default {
+    mixins: [modeChangeMixin],
     data() {
       return {
         showFlag: false,
@@ -58,11 +61,21 @@
         'sequenceList',
         'playList',
         'currentSong'
-      ])
+      ]),
+      getModeText() {
+        if (this.mode === playMode.sequence) {
+          return '顺序播放'
+        }
+        if (this.mode === playMode.random) {
+          return '随机播放'
+        }
+        return '单曲循环'
+      }
     },
     methods: {
       ...mapMutations({
-        setCurrentIndex: 'SET_CURRENT_INDEX'
+        setCurrentIndex: 'SET_CURRENT_INDEX',
+        setPlaying: 'SET_PLAYING'
       }),
       ...mapActions([
         'deleteSongAction',
@@ -83,6 +96,7 @@
           return song.id === item.id
         })
         this.setCurrentIndex(resIndex)
+        this.setPlaying(true)
       },
       getCurrentIcon(item) {
         if (this.currentSong.id === item.id) {
@@ -155,7 +169,7 @@
           align-items: center
           .icon
             margin-right: 10px
-            font-size: 30px
+            font-size: 20px
             color: $color-theme-d
           .text
             flex: 1

@@ -6,21 +6,25 @@
           <h1 class="title">
             <i class="icon"></i>
             <span class="text"></span>
-            <span class="clear"><i class="icon-clear"></i></span>
+            <span class="clear" @click="alertConfirm">
+              <i class="icon-clear"></i>
+            </span>
           </h1>
         </div>
-        <div class="list-content">
-            <li class="item">
-              <i class="current"></i>
-              <span class="text"></span>
+        <v-scroll class="list-content" :data="sequenceList" ref="listContent">
+          <transition-group name="list" tag="ul">
+            <li class="item musicItem" v-for="(item, index) in sequenceList" :key="item.id" @click="selectItem(item)" ref="musicItem">
+              <i class="current" :class="getCurrentIcon(item)"></i>
+              <span class="text">{{item.name}}</span>
               <span class="like">
-                <i></i>
+                <i class="icon-not-favorite"></i>
               </span>
-              <span class="delete">
+              <span class="delete" @click.stop="deleteOne(item)">
                 <i class="icon-delete"></i>
               </span>
             </li>
-        </div>
+          </transition-group>
+        </v-scroll>
         <div class="list-operate">
           <div class="add">
             <i class="icon-add"></i>
@@ -31,24 +35,87 @@
           <span>关闭</span>
         </div>
       </div>
+      <!--弹窗-->
+      <v-confirm :text="title" ref="confirm" @confirm="clearList"></v-confirm>
     </div>
   </transition>
 </template>
 
 <script type="text/ecmascript-6">
+  import { mapGetters, mapMutations, mapActions } from 'vuex'
+  import Scroll from 'base/scroll/scroll'
+  import Confirm from 'base/confirm/confirm'
+
   export default {
     data() {
       return {
-        showFlag: false
+        showFlag: false,
+        title: '确认清空播放列表吗？'
       }
     },
+    computed: {
+      ...mapGetters([
+        'sequenceList',
+        'playList',
+        'currentSong'
+      ])
+    },
     methods: {
+      ...mapMutations({
+        setCurrentIndex: 'SET_CURRENT_INDEX'
+      }),
+      ...mapActions([
+        'deleteSongAction',
+        'clearSongListAction'
+      ]),
       show() {
         this.showFlag = true
+        setTimeout(() => {
+          this.$refs.listContent.refresh()
+          this.scrollToCurrentMusic()
+        }, 20)
       },
       hide() {
         this.showFlag = false
+      },
+      selectItem(item) {
+        let resIndex = this.playList.findIndex((song) => {
+          return song.id === item.id
+        })
+        this.setCurrentIndex(resIndex)
+      },
+      getCurrentIcon(item) {
+        if (this.currentSong.id === item.id) {
+          return 'icon-play'
+        } else {
+          return ''
+        }
+      },
+      scrollToCurrentMusic() {
+        let resIndex = this.sequenceList.findIndex((song) => {
+          return song.id === this.currentSong.id
+        })
+        let musicItem = document.getElementsByClassName('musicItem')
+        this.$refs.listContent.scrollToElement(musicItem[resIndex], 600)
+      },
+      deleteOne(item) {
+        this.deleteSongAction(item)
+        if (!this.playList.length) {
+          this.hide()
+        }
+      },
+      alertConfirm() {
+        this.$refs.confirm.show()
+      },
+      clearList() {
+        this.clearSongListAction()
+        this.$refs.confirm.hide()
+        this.hide()
       }
+    },
+    components: {
+      'v-scroll': Scroll,
+      'v-confirm': Confirm
     }
   }
 </script>
@@ -100,7 +167,7 @@
               font-size: $font-size-medium
               color: $color-text-d
       .list-content
-        max-height: 240px
+        max-height: 300px
         overflow: hidden
         .item
           display: flex

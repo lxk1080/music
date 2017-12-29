@@ -12,7 +12,13 @@ function findIndex (list, song) {
   })
 }
 
-// 歌单播放歌曲（有播放列表）
+/**
+ * 歌单播放歌曲（有播放列表）
+ * @param commit
+ * @param state
+ * @param list
+ * @param index
+ */
 export const playSongAction = ({commit, state}, {list, index}) => {
   commit(types.SET_SEQUENCE_LIST, list)
 
@@ -29,7 +35,11 @@ export const playSongAction = ({commit, state}, {list, index}) => {
   commit(types.SET_PLAYING, true)
 }
 
-// 随机播放（有播放列表）
+/**
+ * 随机播放（有播放列表）
+ * @param commit
+ * @param list
+ */
 export const randomPlayAction = ({commit}, {list}) => {
   commit(types.SET_MODE, playMode.random)
   commit(types.SET_SEQUENCE_LIST, list)
@@ -40,13 +50,20 @@ export const randomPlayAction = ({commit}, {list}) => {
   commit(types.SET_PLAYING, true)
 }
 
-// 从搜索的歌曲中播放（插入播放列表）
+/**
+ * 从搜索的歌曲中播放（插入播放列表）
+ * @param commit
+ * @param state
+ * @param song
+ */
 export const insertSongAction = ({commit, state}, song) => {
   let playList = state.playList.slice()
   let sequenceList = state.sequenceList.slice()
   let currentIndex = state.currentIndex
 
-  // 判断这首歌是否已在播放列表中，并返回索引
+  // 记录下当前的歌曲
+  let currentSong = playList[currentIndex]
+  // 判断待插入的歌是否已在播放列表中，并返回索引
   let index = findIndex(playList, song)
   // 插入播放列表
   currentIndex++
@@ -61,7 +78,6 @@ export const insertSongAction = ({commit, state}, song) => {
     }
   }
 
-  let currentSong = playList[currentIndex]
   // 记录当前歌曲在顺序列表中的索引
   let csIndex = findIndex(sequenceList, currentSong)
   // 判断要插入的歌是否已在顺序列表中
@@ -85,17 +101,71 @@ export const insertSongAction = ({commit, state}, song) => {
   commit(types.SET_PLAYING, true)
 }
 
-// 保存搜索历史
+/**
+ * 保存搜索历史
+ * @param commit
+ * @param query
+ */
 export const saveSearchAction = ({commit}, query) => {
   commit(types.SET_SEARCH_HISTORY, saveSearch(query))
 }
 
-// 删除一个搜索历史
+/**
+ * 删除一个搜索历史
+ * @param commit
+ * @param query
+ */
 export const deleteSearchAction = ({commit}, query) => {
   commit(types.SET_SEARCH_HISTORY, deleteSearch(query))
 }
 
-// 清空搜索历史
+/**
+ * 清空搜索历史
+ * @param commit
+ */
 export const clearSearchAction = ({commit}) => {
   commit(types.SET_SEARCH_HISTORY, clearSearch())
+}
+
+/**
+ * 从播放列表中删除一首歌
+ * @param commit
+ * @param state
+ * @param song
+ */
+export const deleteSongAction = ({commit, state}, song) => {
+  let playList = state.playList.slice()
+  let sequenceList = state.sequenceList.slice()
+  let currentIndex = state.currentIndex
+
+  let pIndex = findIndex(playList, song)
+  playList.splice(pIndex, 1)
+
+  let sIndex = findIndex(sequenceList, song)
+  sequenceList.splice(sIndex, 1)
+
+  // 第二个条件为: 当currentSong为最后一首歌，并且删除的也是最后一首歌时
+  if (currentIndex > pIndex || currentIndex === playList.length) {
+    currentIndex--
+  }
+
+  if (!playList.length) {
+    commit(types.SET_PLAYING, false)
+  }
+
+  commit(types.SET_PLAY_LIST, playList)
+  commit(types.SET_SEQUENCE_LIST, sequenceList)
+  commit(types.SET_CURRENT_INDEX, currentIndex)
+}
+
+/**
+ * 清空播放列表
+ * @param commit
+ * @param state
+ */
+export const clearSongListAction = ({commit}) => {
+  commit(types.SET_PLAY_LIST, [])
+  commit(types.SET_SEQUENCE_LIST, [])
+  commit(types.SET_CURRENT_INDEX, -1)
+  commit(types.SET_PLAYING, false)
 }

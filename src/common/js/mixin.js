@@ -3,6 +3,7 @@
  */
 import { mapGetters } from 'vuex'
 
+// 当Mini屏出现时，修复底边距
 export const fixBottomMixin = {
   computed: {
     ...mapGetters([
@@ -25,4 +26,9 @@ export const fixBottomMixin = {
       throw new Error('this component must be implemented method of handlerBottom!')
     }
   }
+}
+
+// 播放模式切换
+export const modeChangeMixin = {
+
 }

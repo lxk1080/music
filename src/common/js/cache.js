@@ -4,7 +4,10 @@
 import storage from 'good-storage'
 
 const SEARCH_KEY = '__SEARCH__'
-const MAX_LEN = 15
+const SEARCH_MAX_LEN = 15
+
+const PLAY_KEY = '__play__'
+const PLAY_MAX_LEN = 50
 
 /**
  * 保存搜索历史
@@ -17,7 +20,7 @@ export function saveSearch (query) {
   // 执行插入操作（插入到数组的第一位）
   insertQuery(historyArr, query, (item) => {
     return item === query
-  }, MAX_LEN)
+  }, SEARCH_MAX_LEN)
   // 保存到localStorage
   storage.set(SEARCH_KEY, historyArr)
   // 返回给vuex
@@ -53,6 +56,28 @@ export function clearSearch () {
  */
 export function loadSearch () {
   return storage.get(SEARCH_KEY, [])
+}
+
+/**
+ * 保存到最近播放
+ * @param song
+ * @return {*}
+ */
+export function savePlay (song) {
+  let historyArr = storage.get(PLAY_KEY, [])
+  insertQuery(historyArr, song, (item) => {
+    return item.id === song.id
+  }, PLAY_MAX_LEN)
+  storage.set(PLAY_KEY, historyArr)
+  return historyArr
+}
+
+/**
+ * 从localStorage中获得最近播放的歌曲，返回给vuex
+ * @return {*}
+ */
+export function loadPlay () {
+  return storage.get(PLAY_KEY, [])
 }
 
 function insertQuery (arr, query, compare, maxLen) {

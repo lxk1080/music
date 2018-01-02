@@ -122,7 +122,7 @@
 </template>
 
 <script type="text/ecmascript-6">
-  import { mapGetters, mapMutations } from 'vuex'
+  import { mapGetters, mapMutations, mapActions } from 'vuex'
   import animations from 'create-keyframe-animation'
   import { prefixStyle } from 'common/js/dom'
   import ProgressBar from 'base/progress-bar/progress-bar'
@@ -182,6 +182,9 @@
         setFullScreen: 'SET_FULL_SCREEN',
         setPlaying: 'SET_PLAYING'
       }),
+      ...mapActions([
+        'savePlayAction'
+      ]),
       showPlaylist() {
         this.$refs.playlist.show()
       },
@@ -275,6 +278,8 @@
       songCanplay(e) {
         this.songReady = true
         this.totalTime = e.target.duration
+        // 保存到最近播放
+        this.savePlayAction(this.currentSong)
       },
       songError() {
         this.songReady = true

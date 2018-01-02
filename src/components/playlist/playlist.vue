@@ -26,7 +26,7 @@
           </transition-group>
         </v-scroll>
         <div class="list-operate">
-          <div class="add">
+          <div class="add" @click="addSong">
             <i class="icon-add"></i>
             <span class="text">添加歌曲到队列</span>
           </div>
@@ -37,6 +37,8 @@
       </div>
       <!--弹窗-->
       <v-confirm :text="title" ref="confirm" @confirm="clearList"></v-confirm>
+      <!--添加歌曲到列表-->
+      <add-song ref="addSong"></add-song>
     </div>
   </transition>
 </template>
@@ -47,6 +49,7 @@
   import Confirm from 'base/confirm/confirm'
   import { modeChangeMixin } from 'common/js/mixin'
   import { playMode } from 'common/js/config'
+  import AddSong from 'components/add-song/add-song'
 
   export default {
     mixins: [modeChangeMixin],
@@ -125,11 +128,15 @@
         this.clearSongListAction()
         this.$refs.confirm.hide()
         this.hide()
+      },
+      addSong() {
+        this.$refs.addSong.show()
       }
     },
     components: {
       'v-scroll': Scroll,
-      'v-confirm': Confirm
+      'v-confirm': Confirm,
+      'add-song': AddSong
     }
   }
 </script>
@@ -169,7 +176,7 @@
           align-items: center
           .icon
             margin-right: 10px
-            font-size: 20px
+            font-size: 16px
             color: $color-theme-d
           .text
             flex: 1

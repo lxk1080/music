@@ -46,25 +46,21 @@
   import { getHotKey } from 'api/search'
   import { ERR_OK } from 'api/config'
   import Suggest from 'components/suggest/suggest'
-  import { fixBottomMixin } from 'common/js/mixin'
-  import { mapActions, mapGetters } from 'vuex'
+  import { fixBottomMixin, searchMixin } from 'common/js/mixin'
+  import { mapActions } from 'vuex'
   import SearchList from 'base/search-list/search-list'
   import Confirm from 'base/confirm/confirm'
   import Scroll from 'base/scroll/scroll'
 
   export default {
-    mixins: [fixBottomMixin],
+    mixins: [fixBottomMixin, searchMixin],
     data() {
       return {
-        query: '',
         hotKey: [],
         text: '确定清空所有搜索记录？'
       }
     },
     computed: {
-      ...mapGetters([
-        'searchHistory'
-      ]),
       shortcut() {
         return this.hotKey.concat(this.searchHistory)
       }
@@ -74,8 +70,6 @@
     },
     methods: {
       ...mapActions([
-        'saveSearchAction',
-        'deleteSearchAction',
         'clearSearchAction'
       ]),
       handlerBottom(playList) {
@@ -85,21 +79,6 @@
 
         this.$refs.shortcutWrapper.style.bottom = bottom
         this.$refs.shortcut.refresh()
-      },
-      saveSearch(query) {
-        this.saveSearchAction(query)
-      },
-      blurInput() {
-        this.$refs.searchBox.blur()
-      },
-      addQuery(key) {
-        this.$refs.searchBox.addQuery(key)
-      },
-      queryChange(newQuery) {
-        this.query = newQuery
-      },
-      deleteOne(item) {
-        this.deleteSearchAction(item)
       },
       alertConfirm() {
         this.$refs.confirm.show()

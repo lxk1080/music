@@ -1,7 +1,7 @@
 /**
  * Created by Administrator on 2017/12/23.
  */
-import { mapGetters, mapMutations } from 'vuex'
+import { mapGetters, mapMutations, mapActions } from 'vuex'
 import { playMode } from 'common/js/config'
 import { shuffle } from 'common/js/Util'
 
@@ -72,6 +72,44 @@ export const modeChangeMixin = {
       return list.findIndex((item) => {
         return item.id === song.id
       })
+    }
+  }
+}
+
+// 关于搜索的一些业务逻辑
+export const searchMixin = {
+  data() {
+    return {
+      query: ''
+    }
+  },
+  computed: {
+    ...mapGetters([
+      'searchHistory'
+    ])
+  },
+  methods: {
+    ...mapActions([
+      'saveSearchAction',
+      'deleteSearchAction'
+    ]),
+    saveSearch(query) {
+      this.saveSearchAction(query)
+      if (this.$refs.topTip) {
+        this.showTip()
+      }
+    },
+    blurInput() {
+      this.$refs.searchBox.blur()
+    },
+    addQuery(key) {
+      this.$refs.searchBox.addQuery(key)
+    },
+    queryChange(newQuery) {
+      this.query = newQuery
+    },
+    deleteOne(item) {
+      this.deleteSearchAction(item)
     }
   }
 }

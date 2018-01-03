@@ -30,13 +30,14 @@ export const fixBottomMixin = {
   }
 }
 
-// 播放模式切换
+// 播放模式切换与收藏功能
 export const modeChangeMixin = {
   computed: {
     ...mapGetters([
       'sequenceList',
       'mode',
-      'currentSong'
+      'currentSong',
+      'favoriteList'
     ]),
     iconMode() {
       if (this.mode === playMode.sequence) {
@@ -54,6 +55,30 @@ export const modeChangeMixin = {
       setMode: 'SET_MODE',
       setPlayList: 'SET_PLAY_LIST'
     }),
+    ...mapActions([
+      'saveFavoriteAction',
+      'deleteFavoriteAction'
+    ]),
+    toggleFavorite(song) {
+      if (this.isFavorite(song)) {
+        this.deleteFavoriteAction(song)
+      } else {
+        this.saveFavoriteAction(song)
+      }
+    },
+    getFavoriteIcon(song) {
+      if (this.isFavorite(song)) {
+        return 'icon-favorite'
+      } else {
+        return 'icon-not-favorite'
+      }
+    },
+    isFavorite(song) {
+      let index = this.favoriteList.findIndex((item) => {
+        return item.id === song.id
+      })
+      return index > -1
+    },
     modeChange() {
       let mode = (this.mode + 1) % 3
       this.setMode(mode)
@@ -65,6 +90,7 @@ export const modeChangeMixin = {
       }
       // 获取当前歌曲在新列表里的索引
       let index = this._getNewIndex(list, this.currentSong)
+      // js执行一句的时间几微秒，nextTick的时间大约几毫秒，这两句的执行对于一次nextTick来说，是同时进行的
       this.setPlayList(list)
       this.setCurrentIndex(index)
     },

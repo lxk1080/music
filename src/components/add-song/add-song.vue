@@ -99,6 +99,7 @@
       },
       selectSong(song, index) {
         if (index !== 0) {
+          // 这里的song对象是从localstorage中取出，不是Song类的实例，没有getLyric方法，所以先实例化
           this.insertSongAction(new Song(song))
           this.showTip()
         }

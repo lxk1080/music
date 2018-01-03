@@ -2,6 +2,9 @@
   <div class="m-header">
     <div class="icon"></div>
     <h1 class="text">Cloud Music</h1>
+    <router-link to="/user" tag="div" class="mine">
+      <i class="icon-mine"></i>
+    </router-link>
   </div>
 </template>
 
@@ -41,6 +44,6 @@
       .icon-mine
         display: block
         padding: 12px
-        font-size: 20px
+        font-size: 18px
         color: $color-theme
 </style>

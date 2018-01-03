@@ -109,11 +109,12 @@
     <!--播放器-->
     <!--
       oncanplay: 当文件就绪可以开始播放时（这里是为了防止快速切歌的标志位）
+      onplay: 当文件开始播放时
       onerror: 文件加载期间发生错误时（发生错误时songReady也得为true，否则就切不了歌了）
       onended: 歌曲播放完成时
     -->
     <audio :src="currentSong.url" ref="audio"
-           @canplay="songCanplay"
+           @play="songCanplay"
            @error="songError"
            @ended="songEnd"
            @timeupdate="doSomething"
@@ -266,6 +267,7 @@
         }
         if (this.playList.length === 1) {
           this.loop()
+          return
         } else {
           let index = this.currentIndex + 1
           if (index === this.playList.length) {
@@ -277,19 +279,27 @@
       },
       songCanplay(e) {
         this.songReady = true
-        this.totalTime = e.target.duration
+        // 这里获取音频的时间会有延迟，所以100ms后再获取
+        setTimeout(() => {
+          this.totalTime = e.target.duration
+        }, 100)
         // 保存到最近播放
         this.savePlayAction(this.currentSong)
       },
       songError() {
         this.songReady = true
         this.totalTime = 0
+        // 记录下加载出错的歌曲，防止在歌词还没有加载的情况下切歌导致的歌词错位问题
+        let currentSong = this.currentSong
         this.timer = setInterval(() => {
+          if (this.currentSong !== currentSong) {
+            clearInterval(this.timer)
+          }
           if (this.currentLyric) {
             this.currentLyric.lines.splice(0, this.currentLyric.lines.length, {time: 0, txt: '该歌曲为付费内容！'})
             this.playingLyric = this.currentLyric.lines[0].txt
 
-            clearTimeout(this.timer)
+            clearInterval(this.timer)
           }
         }, 100)
       },
@@ -323,6 +333,10 @@
       },
       getLyric() {
         this.currentSong.getLyric().then((lyric) => {
+          // 异步操作，如果切换到下一首歌时，上一首歌的歌词才被请求到，此时当前歌的歌词无论如何也是不等于上一首的歌词的，此时返回
+          if (this.currentSong.lyric !== lyric) {
+            return
+          }
           this.currentLyric = new Lyric(lyric, this._handler)
           console.log(this.currentLyric)
           if (this.currentLyric.lines.length === 0) {
@@ -445,12 +459,18 @@
         if (this.currentLyric) {
           this.currentLyric.stop()
           this.currentLyric = null
+          this.currentTime = 0
+          this.playingLyric = ''
+          this.currentLineNum = 0
         }
-        setTimeout(() => {
+        if (this.delayTimer) {
+          clearTimeout(this.delayTimer)
+        }
+        this.delayTimer = setTimeout(() => {
           this.$refs.audio.play()
           this.setPlaying(true)
           this.getLyric()
-        }, 1000)
+        }, 500)
       },
       playing(newPlaying) {
         this.$nextTick(() => {

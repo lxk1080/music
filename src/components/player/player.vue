@@ -114,7 +114,7 @@
       onended: 歌曲播放完成时
     -->
     <audio :src="currentSong.url" ref="audio"
-           @play="songCanplay"
+           @play="songPlay"
            @error="songError"
            @ended="songEnd"
            @timeupdate="doSomething"
@@ -277,12 +277,9 @@
         }
         this.songReady = false
       },
-      songCanplay(e) {
+      songPlay(e) {
         this.songReady = true
-        // 这里获取音频的时间会有延迟，所以100ms后再获取
-        setTimeout(() => {
-          this.totalTime = e.target.duration
-        }, 100)
+        this.totalTime = this.currentSong.duration
         // 保存到最近播放
         this.savePlayAction(this.currentSong)
       },

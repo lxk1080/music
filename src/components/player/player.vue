@@ -109,12 +109,13 @@
     <!--播放器-->
     <!--
       oncanplay: 当文件就绪可以开始播放时
-      onplay: 当文件开始播放时（在这里设置防止快速切歌的标志位）
+      onplay: 当媒介就绪可以开始播放时
+      onplaying: 当媒介已开始播放时（在这里设置防止快速切歌的标志位）
       onerror: 文件加载期间发生错误时（发生错误时songReady也得为true，否则就切不了歌了）
       onended: 歌曲播放完成时
     -->
     <audio :src="currentSong.url" ref="audio"
-           @play="songPlay"
+           @playing="songPlaying"
            @error="songError"
            @ended="songEnd"
            @timeupdate="doSomething"
@@ -278,12 +279,14 @@
         }
         this.songReady = false
       },
-      songPlay() {
+      songPlaying() {
         this.songReady = true
         // 得到的歌曲的总时长
         this.totalTime = this.currentSong.duration
         // 保存到最近播放
         this.savePlayAction(this.currentSong)
+
+        console.log('step2')
       },
       songError() {
         this.songReady = true
@@ -460,7 +463,7 @@
         }
         if (this.currentLyric) {
           this.currentLyric.stop()
-          this.currentLyric = null // 这里将歌词置为null，是为了配合歌曲加载失败时替换歌词的判断
+          this.currentLyric = null // 将歌词置为null，配合歌曲加载失败时替换歌词的判断
           this.playingLyric = ''
           this.currentTime = 0
           this.currentLineNum = 0
@@ -472,7 +475,7 @@
           this.$refs.audio.play()
           this.setPlaying(true)
           this.getLyric()
-        }, 500)  // 这里的延迟执行是为了解决微信端的后台切换延迟
+        }, 500)  // 这里的延迟执行是为了解决移动端的后台切换延迟
       },
       playing(newPlaying) {
         this.$nextTick(() => {

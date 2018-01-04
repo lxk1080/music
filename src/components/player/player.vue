@@ -57,7 +57,7 @@
           <div class="progress-wrapper">
             <span class="time time-l">{{currentTime | timeFilter}}</span>
             <div class="progress-bar-wrapper">
-              <progress-bar :percent="getPercent" @percentChange="doPercentChange"></progress-bar>
+              <progress-bar ref="progressBar" :percent="getPercent" @percentChange="doPercentChange"></progress-bar>
             </div>
             <span class="time time-r">{{totalTime | timeFilter}}</span>
           </div>
@@ -108,8 +108,8 @@
     <v-playlist ref="playlist"></v-playlist>
     <!--播放器-->
     <!--
-      oncanplay: 当文件就绪可以开始播放时（这里是为了防止快速切歌的标志位）
-      onplay: 当文件开始播放时
+      oncanplay: 当文件就绪可以开始播放时
+      onplay: 当文件开始播放时（在这里设置防止快速切歌的标志位）
       onerror: 文件加载期间发生错误时（发生错误时songReady也得为true，否则就切不了歌了）
       onended: 歌曲播放完成时
     -->
@@ -252,6 +252,7 @@
         }
         if (this.playList.length === 1) {
           this.loop()
+          return
         } else {
           let index = this.currentIndex - 1
           if (index === -1) {
@@ -277,8 +278,9 @@
         }
         this.songReady = false
       },
-      songPlay(e) {
+      songPlay() {
         this.songReady = true
+        // 得到的歌曲的总时长
         this.totalTime = this.currentSong.duration
         // 保存到最近播放
         this.savePlayAction(this.currentSong)
@@ -286,7 +288,8 @@
       songError() {
         this.songReady = true
         this.totalTime = 0
-        // 记录下加载出错的歌曲，防止在歌词还没有加载的情况下切歌导致的歌词错位问题
+        // 如果歌曲加载失败，默认为付费歌曲
+        // 记录下加载出错的歌曲，防止在歌词还没有加载的情况下切歌，导致的歌词错位问题
         let currentSong = this.currentSong
         this.timer = setInterval(() => {
           if (this.currentSong !== currentSong) {
@@ -295,6 +298,7 @@
           if (this.currentLyric) {
             this.currentLyric.lines.splice(0, this.currentLyric.lines.length, {time: 0, txt: '该歌曲为付费内容！'})
             this.playingLyric = this.currentLyric.lines[0].txt
+            this.setPlaying(false)
 
             clearInterval(this.timer)
           }
@@ -310,6 +314,7 @@
       loop() {
         this.$refs.audio.currentTime = 0
         this.$refs.audio.play()
+        this.setPlaying(true)
         if (this.currentLyric) {
           this.currentLyric.seek(0)
         }
@@ -455,9 +460,9 @@
         }
         if (this.currentLyric) {
           this.currentLyric.stop()
-          this.currentLyric = null
-          this.currentTime = 0
+          this.currentLyric = null // 这里将歌词置为null，是为了配合歌曲加载失败时替换歌词的判断
           this.playingLyric = ''
+          this.currentTime = 0
           this.currentLineNum = 0
         }
         if (this.delayTimer) {
@@ -467,13 +472,22 @@
           this.$refs.audio.play()
           this.setPlaying(true)
           this.getLyric()
-        }, 500)
+        }, 500)  // 这里的延迟执行是为了解决微信端的后台切换延迟
       },
       playing(newPlaying) {
         this.$nextTick(() => {
           const audio = this.$refs.audio
           newPlaying ? audio.play() : audio.pause()
         })
+      },
+      // fix：在mini屏暂停后，再打开全屏后的进度球错位问题
+      fullScreen(newVal) {
+        if (newVal) {
+          setTimeout(() => {
+            this.$refs.lyricList.refresh()
+            this.$refs.progressBar.setProgressOffset(this.getPercent)
+          }, 20)
+        }
       }
       // 监听当前歌词
       /* currentLineNum() {

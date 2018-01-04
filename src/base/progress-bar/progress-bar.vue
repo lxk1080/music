@@ -56,6 +56,14 @@
         this._offset(offset)
         this._percentChange()
       },
+      setProgressOffset(percent) {
+        if (this.touch.running) {
+          return
+        }
+        const barWidth = this.$refs.progressBar.clientWidth - progressBtnWidth
+        const offsetWidth = percent * barWidth
+        this._offset(offsetWidth)
+      },
       _percentChange() {
         let barWidth = this.$refs.progressBar.clientWidth - progressBtnWidth
         let percent = this.$refs.progress.clientWidth / barWidth
@@ -63,17 +71,12 @@
       },
       _offset(offsetWidth) {
         this.$refs.progress.style.width = offsetWidth + 'px' // 进度条
-        this.$refs.progressBtn.style[TRANSFORM] = `translate3d(${offsetWidth}px, 0, 0)`  // 进度球
+        this.$refs.progressBtn.style[TRANSFORM] = `translate3d(${offsetWidth}px, 0, 0)` // 进度球
       }
     },
     watch: {
       percent(newPercent) {
-        if (this.touch.running) {
-          return
-        }
-        let barWidth = this.$refs.progressBar.clientWidth - progressBtnWidth
-        let offsetWidth = newPercent * barWidth
-        this._offset(offsetWidth)
+        this.setProgressOffset(newPercent)
       }
     }
   }

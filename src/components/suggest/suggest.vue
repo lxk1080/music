@@ -132,7 +132,12 @@
         this.page++
         musicSearch(this.query, this.page, this.showSinger, PERPAGE).then((res) => {
           if (res.code === ERR_OK) {
-            this.result = [...this.result, ...this._genResult(res.data)]
+            // 如果搜索的是歌手，则每次搜索都会带上歌手数据，此时删除第一个
+            if (res.data.zhida && res.data.zhida.singerid) {
+              this.result = [...this.result, ...this._genResult(res.data).slice(1)]
+            } else {
+              this.result = [...this.result, ...this._genResult(res.data)]
+            }
             this._checkMore(res.data)
           }
           this.hasLock = false // 开锁

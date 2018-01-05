@@ -25,8 +25,8 @@
           <!--图片-->
           <div class="middle-l" v-show="showPic" ref="cd">
             <div class="cd-wrapper" ref="cdWrapper">
-              <div class="cd">
-                <img class="image" :class="isRotate" :src="currentSong.image">
+              <div class="cd" ref="imageWrapper">
+                <img ref="image" class="image" :class="isRotate" :src="currentSong.image">
               </div>
             </div>
             <div class="playing-lyric-wrapper">
@@ -86,8 +86,8 @@
     <transition name="mini">
       <div class="mini-player" v-show="!fullScreen" @click="open">
         <div class="icon">
-          <div class="imgWrapper">
-            <img width="40" height="40" :src="currentSong.image" :class="isRotate">
+          <div class="imgWrapper" ref="miniWrapper">
+            <img ref="miniImage" width="40" height="40" :src="currentSong.image" :class="isRotate">
           </div>
         </div>
         <div class="text">
@@ -114,9 +114,10 @@
       onerror: 文件加载期间发生错误时（发生错误时songReady也得为true，否则就切不了歌了）
       onended: 歌曲播放完成时
     -->
-    <audio :src="currentSong.url" ref="audio"
+    <audio id="audio" ref="audio"
            @playing="songPlaying"
            @error="songError"
+           @pause="songPaused"
            @ended="songEnd"
            @timeupdate="doSomething"
     ></audio>
@@ -156,9 +157,30 @@
     created() {
       this.touch = {}
     },
+    mounted() {
+      // 解决ios与微信下的音乐无法自动播放的问题
+      function audioAutoPlay(id) {
+        let audio = document.getElementById(id)
+        let play = function() {
+          audio.play()
+          document.removeEventListener('touchstart', play, false)
+        }
+        audio.play()
+        document.addEventListener('WeixinJSBridgeReady', function () {
+          play()
+        }, false)
+        document.addEventListener('YixinJSBridgeReady', function() {
+          play()
+        }, false)
+        document.addEventListener('touchstart', play, false)
+      }
+      setTimeout(() => {
+        audioAutoPlay('audio')
+      }, 20)
+    },
     computed: {
       isRotate() {
-        return this.playing ? 'play' : 'play pause'
+        return this.playing ? 'play' : ''
       },
       playIcon() {
         return this.playing ? 'icon-pause' : 'icon-play'
@@ -281,15 +303,22 @@
       },
       songPlaying() {
         this.songReady = true
+        // 清除超时操作
+        clearTimeout(this.delayTimer)
         // 得到的歌曲的总时长
         this.totalTime = this.currentSong.duration
         // 保存到最近播放
         this.savePlayAction(this.currentSong)
-
-        console.log('step2')
+        // 如果歌曲的播放晚于歌词的出现，播放的时候需要同步歌词
+        if (this.currentLyric) {
+          this.currentLyric.seek(this.currentTime * 1000)
+        }
       },
       songError() {
         this.songReady = true
+        // 清除超时操作
+        clearTimeout(this.delayTimer)
+        // 总时长置零
         this.totalTime = 0
         // 如果歌曲加载失败，默认为付费歌曲
         // 记录下加载出错的歌曲，防止在歌词还没有加载的情况下切歌，导致的歌词错位问题
@@ -306,6 +335,12 @@
             clearInterval(this.timer)
           }
         }, 100)
+      },
+      songPaused() {
+        this.setPlaying(false)
+        if (this.currentLyric) {
+          this.currentLyric.stop()
+        }
       },
       songEnd() {
         if (this.mode === playMode.loop) {
@@ -425,7 +460,23 @@
         this.$refs.cd.style.opacity = opacity
       },
       /**
-       * 得到大图与小图圆心的x轴y轴的距离和缩放比例
+       * 计算内层Image的transform，每次播放暂停时，同步到外层容器，修复ios与微信端不兼容
+       * @param wrapper
+       * @param inner
+       */
+      syncWrapperTransform (wrapper, inner) {
+        if (!this.$refs[wrapper]) {
+          return
+        }
+        let imageWrapper = this.$refs[wrapper]
+        let image = this.$refs[inner]
+        let wTransform = getComputedStyle(imageWrapper)[TRANSFORM]
+        let iTransform = getComputedStyle(image)[TRANSFORM]
+
+        imageWrapper.style[TRANSFORM] = wTransform === 'none' ? iTransform : iTransform.concat(' ', wTransform)
+      },
+      /**
+       * 得到大图圆心与小图圆心的x轴y轴的距离和缩放比例
        * @return {{x: number, y: number, scale: number}}
        * @private
        */
@@ -455,33 +506,40 @@
     },
     watch: {
       currentSong(newSong, oldSong) {
-        if (!newSong.id) {
-          return
-        }
-        if (newSong.id === oldSong.id) {
+        if (!newSong.id || !newSong.url || newSong.id === oldSong.id) {
           return
         }
         if (this.currentLyric) {
           this.currentLyric.stop()
-          this.currentLyric = null // 将歌词置为null，配合歌曲加载失败时替换歌词的判断
+          // 将歌词置为null，配合歌曲加载失败时替换歌词的判断
+          this.currentLyric = null
           this.playingLyric = ''
           this.currentTime = 0
           this.currentLineNum = 0
         }
-        if (this.delayTimer) {
-          clearTimeout(this.delayTimer)
-        }
+        this.$refs.audio.src = newSong.url
+        // audio.play()方法是将控件置为播放状态，与音频是否加载完无关
+        this.$refs.audio.play()
+        this.setPlaying(true)
+        this.getLyric()
+        // 设置歌曲超时时间，超时后改变状态，以确保能切换歌曲
         this.delayTimer = setTimeout(() => {
-          this.$refs.audio.play()
-          this.setPlaying(true)
-          this.getLyric()
-        }, 500)  // 这里的延迟执行是为了解决移动端的后台切换延迟
+          this.songReady = true
+        }, 6000)
       },
       playing(newPlaying) {
         this.$nextTick(() => {
           const audio = this.$refs.audio
           newPlaying ? audio.play() : audio.pause()
         })
+        // 解决ios与微信端暂停播放时 animation-play-state: paused 失效的问题
+        if (!newPlaying) {
+          if (this.fullScreen) {
+            this.syncWrapperTransform('imageWrapper', 'image')
+          } else {
+            this.syncWrapperTransform('miniWrapper', 'miniImage')
+          }
+        }
       },
       // fix：在mini屏暂停后，再打开全屏后的进度球错位问题
       fullScreen(newVal) {
@@ -597,8 +655,8 @@
                 border: 10px solid rgba(255, 255, 255, 0.1)
                 &.play
                   animation: rotate 20s linear infinite
-                &.pause
-                  animation-play-state: paused
+                /* &.pause
+                  animation-play-state: paused */
           .playing-lyric-wrapper
             width: 80%
             margin: 30px auto 0 auto

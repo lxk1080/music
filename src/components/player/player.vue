@@ -665,7 +665,6 @@
             .playing-lyric
               height: 20px
               line-height: 20px
-              letter-spacing: 1px
               font-size: $font-size-medium
               color: $color-text-l
         .middle-r

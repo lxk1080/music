@@ -27,8 +27,8 @@
       },
       bgImage() {
         if (this.songs.length) {
-          let randomInt = (Math.random() * this.songs.length) | 0
-          return this.songs[randomInt].image
+          // let randomInt = (Math.random() * this.songs.length) | 0
+          return this.songs[0].image
         }
         return ''
       },

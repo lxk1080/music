@@ -681,7 +681,6 @@
             .text
               height: 32px
               line-height: 32px
-              letter-spacing: 1px
               color: $color-text-l
               font-size: $font-size-medium
               &.current

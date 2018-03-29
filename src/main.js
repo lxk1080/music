@@ -1,4 +1,4 @@
-import 'babel-polyfill' // 编译不是js文件的es6
+import 'babel-polyfill' // 编译es6API
 import Vue from 'vue'
 import App from './App'
 import router from './router'

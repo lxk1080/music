@@ -141,11 +141,11 @@
           this.$refs.filter.style[BACKDROP_FILTER] = `blur(${blur}px)`
         }
         // 向下滚动时
-        if (newY > 0) {
+        if (newY >= 0) {
           // 使图片扩大并改变层级
           let scale = 1 + percent
-          this.$refs.bgImage.style[TRANSFORM] = `scale(${scale})`
           this.$refs.bgImage.style['zIndex'] = 10
+          this.$refs.bgImage.style[TRANSFORM] = `scale(${scale})`
         }
       }
     },

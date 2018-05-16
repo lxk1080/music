@@ -28,7 +28,7 @@
 <script type="text/ecmascript-6">
   import { musicSearch } from 'api/search'
   import { ERR_OK } from 'api/config'
-  import { createSong } from 'common/js/song'
+  import { createSong, isValidMusic, processSongsUrl } from 'common/js/song'
   import Scroll from 'base/scroll/scroll'
   import Loading from 'base/loading/loading'
   import Singer from 'common/js/singer'
@@ -114,7 +114,9 @@
         this.$refs.suggest.scrollTo(0, 0)
         musicSearch(this.query, this.page, this.showSinger, PERPAGE).then((res) => {
           if (res.code === ERR_OK) {
-            this.result = this._genResult(res.data)
+            this._genResult(res.data).then((result) => {
+              this.result = result
+            })
             this._checkMore(res.data)
           }
         })
@@ -134,9 +136,13 @@
           if (res.code === ERR_OK) {
             // 如果搜索的是歌手，则每次搜索都会带上歌手数据，此时删除第一个
             if (res.data.zhida && res.data.zhida.singerid) {
-              this.result = [...this.result, ...this._genResult(res.data).slice(1)]
+              this._genResult(res.data).then((result) => {
+                this.result = [...this.result, ...result.slice(1)]
+              })
             } else {
-              this.result = [...this.result, ...this._genResult(res.data)]
+              this._genResult(res.data).then((result) => {
+                this.result = [...this.result, ...result]
+              })
             }
             this._checkMore(res.data)
           }
@@ -150,15 +156,15 @@
         if (data.zhida && data.zhida.singerid) {
           ret.push({...data.zhida, ...{type: TYPE_SINGER}})
         }
-        if (data.song) {
-          ret = [...ret, ...this._dataHandler(data.song.list)]
-        }
-        return ret
+        return processSongsUrl(this._dataHandler(data.song.list)).then((songs) => {
+          ret = [...ret, ...songs]
+          return ret
+        })
       },
       _dataHandler(list) {
         let ret = []
         list.forEach((musicData) => {
-          if (musicData.songid && musicData.albumid) {
+          if (isValidMusic(musicData)) {
             ret.push(createSong(musicData))
           }
         })

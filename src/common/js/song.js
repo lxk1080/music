@@ -1,7 +1,7 @@
 /**
  * Created by lxk on 2017/12/13.
  */
-import { getLyric } from 'api/song'
+import { getLyric, getSongsUrl } from 'api/song'
 import { ERR_OK } from 'api/config'
 import { Base64 } from 'js-base64'
 
@@ -36,7 +36,7 @@ export class Song {
           this.lyric = Base64.decode(res.lyric)
           resolve(this.lyric)
         } else {
-          reject('纯音乐，无歌词')
+          reject('纯音乐，请欣赏')
         }
       })
     })
@@ -53,7 +53,8 @@ export function createSong (musicData) {
     duration: musicData.interval,
     image: `http://y.gtimg.cn/music/photo_new/T002R300x300M000${musicData.albummid}.jpg?max_age=2592000`,
     // url: `http://ws.stream.qqmusic.qq.com/${musicData.songid}.m4a?fromtag=46`
-    url: `http://ws.stream.qqmusic.qq.com/C100${musicData.songmid}.m4a?fromtag=38`
+    // url: `http://ws.stream.qqmusic.qq.com/C100${musicData.songmid}.m4a?fromtag=38`
+    url: musicData.url  // undefined
   })
 }
 
@@ -66,4 +67,24 @@ export function singerFilter (singer) {
     data.push(item.name)
   })
   return data.join('/')
+}
+
+export function isValidMusic(musicData) {
+  return musicData.songid && musicData.albummid && (!musicData.pay || musicData.pay.payalbumprice === 0)
+}
+
+export function processSongsUrl(songs) {
+  if (!songs.length) {
+    return Promise.resolve(songs)
+  }
+  return getSongsUrl(songs).then((res) => {
+    if (res.code === ERR_OK) {
+      let midUrlInfo = res.url_mid.data.midurlinfo
+      midUrlInfo.forEach((info, index) => {
+        let song = songs[index]
+        song.url = `http://dl.stream.qqmusic.qq.com/${info.purl}`
+      })
+    }
+    return songs
+  })
 }

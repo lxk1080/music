@@ -9,7 +9,7 @@
   import { mapGetters } from 'vuex'
   import { getDiscSongs } from 'api/recommend'
   import { ERR_OK } from 'api/config'
-  import { createSong } from 'common/js/song'
+  import { createSong, isValidMusic, processSongsUrl } from 'common/js/song'
 
   export default {
     data() {
@@ -41,14 +41,16 @@
         }
         getDiscSongs(this.desc.dissid).then((res) => {
           if (res.code === ERR_OK) {
-            this.songs = this._dataHandler(res.cdlist[0].songlist)
+            processSongsUrl(this._dataHandler(res.cdlist[0].songlist)).then((songs) => {
+              this.songs = songs
+            })
           }
         })
       },
       _dataHandler(list) {
         let ret = []
         list.forEach((musicData) => {
-          if (musicData.songid && musicData.albummid) {
+          if (isValidMusic(musicData)) {
             ret.push(createSong(musicData))
           }
         })

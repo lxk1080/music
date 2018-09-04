@@ -18,11 +18,11 @@
           <ul>
             <li class="item" v-for="item in descList" @click="selectItem(item)">
               <div class="icon">
-                <img v-lazy="item.imgurl" alt="img" width="60" height="60">
+                <img v-lazy="item.coverImgUrl" alt="img" width="60" height="60">
               </div>
               <div class="text">
-                <div class="name" v-html="item.creator.name"></div>
-                <div class="desc" v-html="item.dissname"></div>
+                <div class="name" v-html="item.name"></div>
+                <div class="desc" v-html="item.copywriter"></div>
               </div>
             </li>
           </ul>
@@ -69,7 +69,7 @@
       },
       selectItem(item) {
         this.$router.push({
-          path: `/recommend/${item.dissid}`
+          path: `/recommend/${item.id}`
         })
         this.setDesc(item)
       },
@@ -82,8 +82,11 @@
       },
       _getDiscList() {
         getDiscList().then((res) => {
+          // ...
+          console.log(res)
+
           if (res.code === ERR_OK) {
-            this.descList = res.data.list
+            this.descList = res.playlists
           }
         })
       },

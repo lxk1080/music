@@ -7,7 +7,7 @@
 <script type="text/ecmascript-6">
   import MusicList from 'components/music-list/music-list'
   import { mapGetters } from 'vuex'
-  import { getDiscSongs } from 'api/recommend'
+  import { getDiscInfo, getDiscSongs } from 'api/recommend'
   import { ERR_OK } from 'api/config'
   import { createSong, isValidMusic, processSongsUrl } from 'common/js/song'
 
@@ -33,17 +33,38 @@
     },
     methods: {
       _getDiscSongs() {
-        if (!this.desc.dissid) {
+        if (!this.desc.id) {
           this.$router.push({
             path: '/recommend'
           })
           return
         }
-        getDiscSongs(this.desc.dissid).then((res) => {
+        getDiscInfo(this.desc.id).then((res) => {
+          // ...
+          console.log(111, res)
+
           if (res.code === ERR_OK) {
-            processSongsUrl(this._dataHandler(res.cdlist[0].songlist)).then((songs) => {
-              this.songs = songs
+            const tracks = res.playlist.tracks
+
+            getDiscSongs(tracks).then((res) => {
+              if (res.code === ERR_OK) {
+                // ...
+                console.log(222, res)
+
+                const data = res.data
+
+                for (let i = 0, len = data.length; i < len; i++) {
+                  tracks[i].url = data[i].url
+                }
+
+                // ...
+                console.log('tracks', tracks)
+              }
             })
+
+            /*processSongsUrl(this._dataHandler(res.cdlist[0].songlist)).then((songs) => {
+              this.songs = songs
+            })*/
           }
         })
       },

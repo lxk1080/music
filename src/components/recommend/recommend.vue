@@ -6,7 +6,8 @@
         <div v-if="banners.length" class="slider-wrapper">
           <v-slider>
             <div v-for="(item,index) in banners" :key="index">
-              <a :href="item.linkUrl">
+              <!--这里需要处理不同的请求 song/mv/link ? -->
+              <a :href="item.url">
                 <img @load="loadImage" :src="item.picUrl" alt="pic">
               </a>
             </div>
@@ -75,7 +76,7 @@
       _getBanners() {
         getBanners().then((res) => {
           if (res.code === ERR_OK) {
-            this.banners = res.data.slider
+            this.banners = res.banners
           }
         })
       },

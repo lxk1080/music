@@ -1,25 +1,19 @@
-/**
- * Created by lxk on 2017/11/28.
- */
-import jsonp from 'common/js/jsonp'
-import {commonParams, options} from './config'
+import { commonParams } from './config'
 import axios from 'axios'
 
 // 获取banner
 export function getBanners () {
-  const url = 'https://c.y.qq.com/musichall/fcgi-bin/fcg_yqqhomepagerecommend.fcg'
-  const data = Object.assign({}, commonParams, {
-    platform: 'h5',
-    uin: 0,
-    needNewCode: 1
-  })
+  const url = '/banner'
 
-  return jsonp(url, data, options)
+  return axios.get(url).then((res) => {
+    return Promise.resolve(res.data)
+  })
 }
 
 // 获取歌单
 export function getDiscList () {
   const url = '/api/getDiscList'
+
   const data = Object.assign({}, commonParams, {
     platform: 'yqq',
     hostUin: 0,

@@ -3,6 +3,7 @@
  */
 import jsonp from 'common/js/jsonp'
 import {commonParams, options} from './config'
+import axios from 'axios'
 
 // 获取热门搜素关键词
 export function getHotKey () {
@@ -20,7 +21,7 @@ export function getHotKey () {
 
 // 获取搜索结果
 export function musicSearch (query, page, zhida, perpage) {
-  const url = 'https://c.y.qq.com/soso/fcgi-bin/search_for_qq_cp'
+  const url = 'api/search'
 
   const data = Object.assign({}, commonParams, {
     uin: '0',
@@ -37,8 +38,13 @@ export function musicSearch (query, page, zhida, perpage) {
     perpage: perpage,
     n: perpage,
     p: page,
-    remoteplace: 'txt.mqq.all'
+    remoteplace: 'txt.mqq.all',
+    format: 'json'
   })
 
-  return jsonp(url, data, options)
+  return axios.get(url, {
+    params: data
+  }).then((res) => {
+    return Promise.resolve(res.data)
+  })
 }

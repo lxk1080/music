@@ -1,14 +1,11 @@
-/**
- * Created by lxk on 2017/12/13.
- */
 import { getLyric, getSongsUrl } from 'api/song'
 import { ERR_OK } from 'api/config'
 import { Base64 } from 'js-base64'
 
 export class Song {
   /**
-   * @param id
-   * @param mid 音乐编号
+   * @param id 音乐编号
+   * @param mid mv编号
    * @param name 歌名
    * @param singer 歌手
    * @param album 专辑
@@ -45,16 +42,15 @@ export class Song {
 
 export function createSong (musicData) {
   return new Song({
-    id: musicData.songid,
-    mid: musicData.songmid,
-    name: musicData.songname,
-    singer: singerFilter(musicData.singer),
-    album: musicData.albumname,
-    duration: musicData.interval,
-    image: `http://y.gtimg.cn/music/photo_new/T002R300x300M000${musicData.albummid}.jpg?max_age=2592000`,
-    // url: `http://ws.stream.qqmusic.qq.com/${musicData.songid}.m4a?fromtag=46`
-    // url: `http://ws.stream.qqmusic.qq.com/C100${musicData.songmid}.m4a?fromtag=38`
-    url: musicData.url  // undefined
+    id: musicData.id,
+    mid: musicData.mv,
+    name: musicData.name,
+    singer: singerFilter(musicData.ar),
+    album: musicData.al.name,
+    duration: musicData.dt / 1000, // 单位: s
+    image: musicData.al.picUrl,
+    // url: musicData.url
+    url: `http://music.163.com/song/media/outer/url?id=${musicData.id}.mp3` // 解决上面url的403问题
   })
 }
 
@@ -67,10 +63,6 @@ export function singerFilter (singer) {
     data.push(item.name)
   })
   return data.join('/')
-}
-
-export function isValidMusic(musicData) {
-  return musicData.songid && musicData.albummid && (!musicData.pay || musicData.pay.payalbumprice === 0)
 }
 
 export function processSongsUrl(songs) {

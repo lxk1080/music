@@ -9,7 +9,7 @@
   import { mapGetters } from 'vuex'
   import { getDiscInfo, getDiscSongs } from 'api/recommend'
   import { ERR_OK } from 'api/config'
-  import { createSong, isValidMusic, processSongsUrl } from 'common/js/song'
+  import { createSong } from 'common/js/song'
 
   export default {
     data() {
@@ -22,10 +22,10 @@
     },
     computed: {
       title() {
-        return this.desc.dissname
+        return this.desc.name
       },
       bgImage() {
-        return this.desc.imgurl
+        return this.desc.coverImgUrl
       },
       ...mapGetters([
         'desc'
@@ -39,42 +39,29 @@
           })
           return
         }
+        // 获取歌单详情
         getDiscInfo(this.desc.id).then((res) => {
-          // ...
-          console.log(111, res)
-
           if (res.code === ERR_OK) {
             const tracks = res.playlist.tracks
-
+            // 歌单详情内只有所有歌曲的id，通过id获得歌单内的所有歌曲的url
             getDiscSongs(tracks).then((res) => {
               if (res.code === ERR_OK) {
-                // ...
-                console.log(222, res)
-
                 const data = res.data
 
                 for (let i = 0, len = data.length; i < len; i++) {
                   tracks[i].url = data[i].url
                 }
-
-                // ...
-                console.log('tracks', tracks)
+                this.songs = this._dataHandler(tracks)
               }
             })
-
-            /*processSongsUrl(this._dataHandler(res.cdlist[0].songlist)).then((songs) => {
-              this.songs = songs
-            })*/
           }
         })
       },
       _dataHandler(list) {
         let ret = []
-        list.forEach((musicData) => {
-          if (isValidMusic(musicData)) {
-            ret.push(createSong(musicData))
-          }
-        })
+        for (let i = 0; i < list.length; i++) {
+          ret.push(createSong(list[i]))
+        }
         return ret
       }
     },

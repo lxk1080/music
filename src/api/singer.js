@@ -3,12 +3,14 @@
  */
 import jsonp from 'common/js/jsonp'
 import {commonParams, options} from './config'
+import axios from "axios/index";
 
 // 获取歌手列表
 export function getSingerList () {
-  const url = 'https://c.y.qq.com/v8/fcg-bin/v8.fcg'
+  // const url = 'https://c.y.qq.com/v8/fcg-bin/v8.fcg'
+  const url = '/toplist/artist'
 
-  const data = Object.assign({}, commonParams, {
+  /*const data = Object.assign({}, commonParams, {
     channel: 'singer',
     page: 'list',
     key: 'all_all_all',
@@ -17,9 +19,11 @@ export function getSingerList () {
     loginUin: 0,
     hostUin: 0,
     needNewCode: 0
-  })
+  })*/
 
-  return jsonp(url, data, options)
+  return axios.get(url).then((res) => {
+    return Promise.resolve(res.data)
+  })
 }
 
 // 获取歌手详情

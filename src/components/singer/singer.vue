@@ -12,6 +12,7 @@
   import Listview from 'base/listview/listview'
   import { mapMutations } from 'vuex'
   import { fixBottomMixin } from 'common/js/mixin'
+  import pinyin from 'pinyin';
 
   const HOT_NAME = '热门'
   const HOT_SINGER_LEN = 10
@@ -46,7 +47,7 @@
       _getSingerList() {
         getSingerList().then((res) => {
           if (res.code === ERR_OK) {
-            this.singers = this._dataHandle(res.data.list)
+            this.singers = this._dataHandle(res.list.artists)
           }
         })
       },
@@ -62,17 +63,17 @@
         array.forEach((item, index) => {
           // 热门数据
           if (index < HOT_SINGER_LEN) {
-            map.hot.items.push(new Singer(item.Fsinger_mid, item.Fsinger_name))
+            map.hot.items.push(new Singer(item.id, item.name, item.img1v1Url))
           }
           // 聚合数据（A~Z）
-          var key = item.Findex
+          const key = pinyin(item.name)[0][0].charAt(0).toUpperCase();
           if (!map[key]) {
             map[key] = {
               title: key,
               items: []
             }
           }
-          map[key].items.push(new Singer(item.Fsinger_mid, item.Fsinger_name))
+          map[key].items.push(new Singer(item.id, item.name, item.img1v1Url))
         })
 
         // 按照需要对数据进行排序

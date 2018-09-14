@@ -653,6 +653,7 @@
                 box-sizing: border-box
                 border-radius: 50%
                 border: 10px solid rgba(255, 255, 255, 0.1)
+                object-fit cover
                 &.play
                   animation: rotate 20s linear infinite
                 /* &.pause

@@ -28,11 +28,11 @@ export function getDiscInfo(id) {
 }
 
 // 获取歌单里的音乐url
-export function getDiscSongs(tracks) {
+export function getDiscSongs(songList) {
   const ids = []
 
-  for (let i = 0; i < tracks.length; i++) {
-    ids.push(tracks[i].id)
+  for (let i = 0; i < songList.length; i++) {
+    ids.push(songList[i].id)
   }
 
   const url = `/music/url?id=${ids.join(',')}`

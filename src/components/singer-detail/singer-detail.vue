@@ -7,6 +7,7 @@
 <script type="text/ecmascript-6">
   import { mapGetters } from 'vuex'
   import { getSingerDetail } from 'api/singer'
+  import { getDiscSongs } from 'api/recommend'
   import { ERR_OK } from 'api/config'
   import { createSong, isValidMusic, processSongsUrl } from 'common/js/song'
   import MusicList from 'components/music-list/music-list'
@@ -38,22 +39,25 @@
           return
         }
         getSingerDetail(this.singer.mid).then((res) => {
-          if (res.code === ERR_OK) {
-            processSongsUrl(this._dataHandler(res.data.list)).then((songs) => {
-              this.songs = songs
-            })
-          }
+          const hotSongs = res.hotSongs;
+          getDiscSongs(hotSongs).then((res) => {
+            if (res.code === ERR_OK) {
+              const data = res.data
+
+              for (let i = 0, len = data.length; i < len; i++) {
+                hotSongs[i].url = data[i].url
+              }
+              this.songs = this._dataHandler(hotSongs)
+            }
+          })
         })
       },
       _dataHandler(list) {
-        let data = []
-        list.forEach((item) => {
-          let {musicData} = item
-          if (isValidMusic(musicData)) {
-            data.push(createSong(musicData))
-          }
-        })
-        return data
+        let ret = []
+        for (let i = 0; i < list.length; i++) {
+          ret.push(createSong(list[i]))
+        }
+        return ret
       }
     },
     components: {

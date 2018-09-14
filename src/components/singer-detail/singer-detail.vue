@@ -9,7 +9,7 @@
   import { getSingerDetail } from 'api/singer'
   import { getDiscSongs } from 'api/recommend'
   import { ERR_OK } from 'api/config'
-  import { createSong, isValidMusic, processSongsUrl } from 'common/js/song'
+  import { createSong } from 'common/js/song'
   import MusicList from 'components/music-list/music-list'
 
   export default {
@@ -39,7 +39,7 @@
           return
         }
         getSingerDetail(this.singer.mid).then((res) => {
-          const hotSongs = res.hotSongs;
+          const hotSongs = res.hotSongs
           getDiscSongs(hotSongs).then((res) => {
             if (res.code === ERR_OK) {
               const data = res.data

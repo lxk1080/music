@@ -12,7 +12,7 @@
   import Listview from 'base/listview/listview'
   import { mapMutations } from 'vuex'
   import { fixBottomMixin } from 'common/js/mixin'
-  import pinyin from 'pinyin';
+  import pinyin from 'pinyin'
 
   const HOT_NAME = '热门'
   const HOT_SINGER_LEN = 10
@@ -66,7 +66,7 @@
             map.hot.items.push(new Singer(item.id, item.name, item.img1v1Url))
           }
           // 聚合数据（A~Z）
-          const key = pinyin(item.name)[0][0].charAt(0).toUpperCase();
+          const key = pinyin(item.name)[0][0].charAt(0).toUpperCase()
           if (!map[key]) {
             map[key] = {
               title: key,

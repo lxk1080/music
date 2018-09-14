@@ -1,4 +1,4 @@
-import axios from "axios/index";
+import axios from 'axios'
 
 // 获取歌手列表
 export function getSingerList () {
